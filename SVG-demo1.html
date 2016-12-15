@@ -12,16 +12,10 @@
 
 <body>
   <script>
-  /*
-  var data = [
-    [{x: 10,y: 10}, {x: 50,y: 100}, {x: 60, y: 50  }, {x: 100,y: 30}],
-    [{x: 50,y: 50}, {x: 50,y: 100}, {x: 100, y: 100  }, {x: 100,y: 50}]
-  ];
-  */
   var data = [
     [{x: 50,y: 50}, {x: 50,y: 100}, {x: 100, y: 100  }, {x: 100,y: 50}],
-    []
   ];
+
   var offset = 3;//line offset 
   var svg = d3.select('body')
     .append('svg')
@@ -93,53 +87,32 @@
     
   }
   function createOffsetPoint(){
-      
-      if(data[0].length <2)
+      let sourceData = data.length-2, targetData = data.length-1;
+      if(data[sourceData].length <2)
           console.log("node <= 2");
       else{
 
-          data[1].push({
-            x: computeNewNode(data[0][data[0].length-1],data[0][0],data[0][1])[0] ,
-            y: computeNewNode(data[0][data[0].length-1],data[0][0],data[0][1])[1]
+          data[targetData].push({
+            x: computeNewNode(data[sourceData][data[sourceData].length-1],data[sourceData][0],data[sourceData][1])[0] ,
+            y: computeNewNode(data[sourceData][data[sourceData].length-1],data[sourceData][0],data[sourceData][1])[1]
           });
-          for(let i = 0 ;i < data[0].length-1 ; i++){
-              if((i+2) > data[0].length-1){
-                  data[1].push({
-                    x: computeNewNode(data[0][i],data[0][i+1],data[0][0])[0] ,
-                    y: computeNewNode(data[0][i],data[0][i+1],data[0][0])[1]
+          for(let i = 0 ;i < data[sourceData].length-1 ; i++){
+              if((i+2) > data[sourceData].length-1){
+                  data[targetData].push({
+                    x: computeNewNode(data[sourceData][i],data[sourceData][i+1],data[sourceData][0])[0] ,
+                    y: computeNewNode(data[sourceData][i],data[sourceData][i+1],data[sourceData][0])[1]
                   })
               }
               else{
-                  data[1].push({
-                    x: computeNewNode(data[0][i],data[0][i+1],data[0][i+2])[0] ,
-                    y: computeNewNode(data[0][i],data[0][i+1],data[0][i+2])[1]
+                  data[targetData].push({
+                    x: computeNewNode(data[sourceData][i],data[sourceData][i+1],data[sourceData][i+2])[0] ,
+                    y: computeNewNode(data[sourceData][i],data[sourceData][i+1],data[sourceData][i+2])[1]
                   })
                 }
                 
               }
-              console.log(data[1]);
+             
       }
-      /*
-      data[1].push({
-            x: computeNewNode(data[0][0],data[0][1],data[0][2])[0] ,
-            y: computeNewNode(data[0][0],data[0][1],data[0][2])[1]
-          });
-      data[1].push({
-            x: computeNewNode(data[0][1],data[0][2],data[0][3])[0] ,
-            y: computeNewNode(data[0][1],data[0][2],data[0][3])[1]
-          });
-
-      data[1].push({
-            x: computeNewNode(data[0][2],data[0][3],data[0][0])[0] ,
-            y: computeNewNode(data[0][2],data[0][3],data[0][0])[1]
-          });
-
-      data[1].push({
-            x: computeNewNode(data[0][3],data[0][0],data[0][1])[0] ,
-            y: computeNewNode(data[0][3],data[0][0],data[0][1])[1]
-          });
-      console.log(data[1]);
-      */
   }
 
   function computeVector(p1, p2){
@@ -168,41 +141,39 @@
   //update()
   function updateData() {
 
-   svg.selectAll("*").remove();
-    svg.append('path')
-    .attr({
-      'd': line(data[0]),
-      'y': 0,
-      'stroke': '#000',
-      'stroke-width': '1px',
-      'fill': 'none'
-    });
+  svg.selectAll("*").remove();
+  for (let i = 0; i < data.length; i++) {
+        svg.append('path')
+        .attr({
+          'd': line(data[i]),
+          'y': 0,
+          'stroke': '#000',
+          'stroke-width': '1px',
+          'fill': 'none'
+      });
+  }
     
-    svg.append('path')
-    .attr({
-      'd': line(data[1]),
-      'y': 0,
-      'stroke': '#000',
-      'stroke-width': '1px',
-      'fill': 'none'
-    });
     
+}
+function realtimeRending(d){
+    offset = d;
+    data.push([]);
+    createOffsetPoint();
+    updateData();
 }
   </script>
   <!--
   <svg width="800" height="800"><path d="M10,10L50,100L60,50L100,30" y="0" stroke="#000" stroke-width="5px" fill="none"></path></svg>
     -->
-    <div id="option">
-    <input name="updateButton" 
-                 type="button" 
-                value="Update" 
-                onclick="updateData()" />
+
     </div>
-    <div id="compute">
-    <input name="computeButton" 
-                 type="button" 
-                value="compute" 
-                onclick="createOffsetPoint()" />
+    <div id="slide">
+    <input type="range" 
+              min="1" 
+              max="5" 
+              step="1" 
+              value="3"
+              onclick="realtimeRending(value)"/>
     </div>
 
 </body></html>

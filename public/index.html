@@ -3,18 +3,28 @@
  <html>
  <head>
  	<title>example</title>
+ 	<link rel="stylesheet" type="text/css" href="css/index.css">
  </head>
  <body>
- 	<input id="slide" 
- 		    type="range"
- 		   	min="1" 
-           	max="5" 
-           	step="1" 
-           	value="3">
+ 	
  	<div>
       <button id="saveSVG" >儲存</button>
       <a id="link">download</a>
     </div>
+<div class="flex-row">
+	<div class="flex-column-reverse">
+		<div class="flex-item item1">1
+			<input id="slide" 
+		 		    type="range"
+		 		   	min="1" 
+		           	max="5" 
+		           	step="1" 
+		           	value="3"></div>
+		<div class="flex-item item2">2</div>
+		<div class="flex-item item3">3</div>
+	</div>
+	<div class="flex-item item4">4</div>
+</div>
  </body>
  <script src="js/main.js"></script>
  </html>

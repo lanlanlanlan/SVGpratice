@@ -1,3 +1,3 @@
 node install http-server -g
 npm install http-server -g
-C:\Users\cg\Desktop\pratice>http-server
+C:\Users\cg\Desktop\pratice0831\pratice0831\pratice>http-server

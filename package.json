@@ -1,0 +1,20 @@
+{
+  "name": "svg_edit_system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "watchify src/main.js -v -t [babelify ] -d -o public/js/main.js",
+    "server": "http-server ./public"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babelify": "^7.3.0",
+    "d3": "^3.5.17",
+    "watchify": "3.7.0"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.1.8"
+  }
+}

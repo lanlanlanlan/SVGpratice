@@ -1,59 +1,36 @@
-<!DOCTYPE html>
-<!-- saved from url=(0062)http://www.oxxostudio.tw/demo/201411/svg-d3-02-line-demo1.html -->
-<html lang="tw"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
-  <meta name="author" content="oxxo.studio">
-  <meta name="copyright" content="oxxo.studio">
-  <title>SVG D3.js - 繪製線段 - demo1</title>
-  <script src="./src/js/lib/d3.v3.min.js"></script>
-  <script src="./src/js/lib/three.min.js"></script>
-  <script src="./src/js/lib/math.min.js"></script>
-</head>
 
-<body>
-<div id="slide">
-    <input type="range" 
-              min="1" 
-              max="5" 
-              step="1" 
-              value="3"
-              onclick="realtimeRending(value)"/>
-    </div>
-    <div>
-      <button onclick="saveSVG()" ></button>
-      <a id="link">download</a>
-    </div>
-  <script>
-  var data = [
+import * as d3 from 'd3';
+import math from './lib/math.min.js';
+var data = [
     [{x: 50,y: 50}, {x: 50,y: 100}, {x: 100, y: 100  }, {x: 100,y: 50}],
   ];
 
-  var offset = 3;//line offset 
-  var svg = d3.select('body')
-    .append('svg')
-    .attr({
-      'width': 400,
-      'height': 400,
-      'id':'svg'
-    });
+var offset = 3;//line offset 
+var svg = d3.select('body')
+  .append('svg')
+  .attr({
+    'width': 400,
+    'height': 400,
+    'id':'svg'
+  });
 
-  var line = d3.svg.line()
-    .x(function(d) {
-      return d.x;
-    })
-    .y(function(d) {
-      return d.y;
-    }).interpolate('linear-closed');
+var line = d3.svg.line()
+  .x(function(d) {
+    return d.x;
+  })
+  .y(function(d) {
+    return d.y;
+  }).interpolate('linear-closed');
 
-  svg.append('path')
-    .attr({
-      'd': line(data[0]),
-      'y': 0,
-      'stroke': '#000',
-      'stroke-width': '1px',
-      'fill': 'none'
-    });
-  function saveSVG(){
+svg.append('path')
+  .attr({
+    'd': line(data[0]),
+    'y': 0,
+    'stroke': '#000',
+    'stroke-width': '1px',
+    'fill': 'none'
+  });
+export function saveSVG(){
       //get svg element.
       var svg = document.getElementById("svg");
 
@@ -82,13 +59,13 @@
       //you can download svg file by right click menu.
 
   }
-  function computeNewNode_old(element){
+export  function computeNewNode_old(element){
       for (var i = 0; i <element.length; i++) {
            var m = [element[i]]
       }
   } 
 
-  function computeNewNode(p1, p2, p3) {
+export  function computeNewNode(p1, p2, p3) {
 
     let vectorData = [{x:0, y:0}, {x:0, y:0}];
     vectorData[0] = computeCrossVector( computeVector(p1, p2));
@@ -128,7 +105,7 @@
     return math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
     
   }
-  function createOffsetPoint(){
+export  function createOffsetPoint(){
       let sourceData = data.length-2, targetData = data.length-1;
       if(data[sourceData].length <2)
           console.log("node <= 2");
@@ -157,31 +134,31 @@
       }
   }
 
-  function computeVector(p1, p2){
+export  function computeVector(p1, p2){
       return { 
         x:(p2.x - p1.x) ,
         y:(p2.y - p1.y)
       };
   }
   
-  function computeCrossVector(p){
+export  function computeCrossVector(p){
     var temp = -p.x;
     p.x = p.y;
     p.y = temp;
     return p;
   }
-  function computeUnitVector(p){
+export  function computeUnitVector(p){
     var v = { x:p.x , y:p.y};
     var length = Math.sqrt(Math.pow(p.x, 2) + Math.pow(p.y, 2));
     v.x /= length ;
     v.y /= length;
     return v;
   }
-  function computeSlope(p1 ,p2){
+export  function computeSlope(p1 ,p2){
       return ((p2.y-p1.y)/(p2.x-p1.x));
   }
   //update()
-  function updateData() {
+export  function updateData() {
 
   svg.selectAll("*").remove();
   for (let i = 0; i < data.length; i++) {
@@ -197,15 +174,9 @@
     
     
 }
-function realtimeRending(d){
+export function realtimeRending(d){
     offset = d;
     data.push([]);
     createOffsetPoint();
     updateData();
 }
-  </script>
-  <!--
-  <svg width="800" height="800"><path d="M10,10L50,100L60,50L100,30" y="0" stroke="#000" stroke-width="5px" fill="none"></path></svg>
-    -->
-
-</body></html>

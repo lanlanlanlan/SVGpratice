@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)http://www.oxxostudio.tw/demo/201411/svg-d3-02-line-demo1.html -->
+<html lang="tw"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="author" content="oxxo.studio">
+  <meta name="copyright" content="oxxo.studio">
+  <title>SVG D3.js - 繪製線段 - demo1</title>
+  <link rel="stylesheet" type="text/css" href="./color.css">
+  <script src="./src/js/lib/d3.v3.min.js"></script>
+  <script src="./src/js/lib/three.min.js"></script>
+  <script src="./src/js/lib/math.min.js"></script>
+</head>
+
+<body>
+
+    <div>
+      <button onclick="saveSVG()" ></button>
+      <a id="link">download</a>
+      <button id='greenbutton' value='#0f0'onclick="updateData(value)">green</button>
+      <button class="item7" id='redbutton' value='#f00'onclick="updateData(value)">red</button>
+
+    </div>
+  <script>
+  var data = [
+    [{x: 50,y: 50}, {x: 50,y: 100}, {x: 100, y: 100  }, {x: 100,y: 50}],
+  ];
+
+  var offset = 3;//line offset 
+  var svg = d3.select('body')
+    .append('svg')
+    .attr({
+      'width': 400,
+      'height': 400,
+      'id':'svg'
+    });
+
+  var line = d3.svg.line()
+    .x(function(d) {
+      return d.x;
+    })
+    .y(function(d) {
+      return d.y;
+    }).interpolate('linear-closed');
+
+  svg.append('path')
+    .attr({
+      'd': line(data[0]),
+      'y': 0,
+      'stroke': '#000',
+      'stroke-width': '1px',
+      'class': "item3"
+    });
+  function saveSVG(){
+      //get svg element.
+      var svg = document.getElementById("svg");
+
+      //get svg source.
+      var serializer = new XMLSerializer();
+      var source = serializer.serializeToString(svg);
+
+      //add name spaces.
+      if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+          source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+          source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      }
+
+      //add xml declaration
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+      //convert svg source to URI data scheme.
+      var url = "data:application/octet-stream;charset=utf-8,"+encodeURIComponent(source);
+
+      //set url value to a element's href attribute.
+      var link = document.getElementById("link");
+      link.href = url;
+      link.download = 'save.svg';
+      //you can download svg file by right click menu.
+
+  }
+  
+ 
+  //update()
+  function updateData(value) {
+  svg.selectAll("*").remove();
+  svg.append('path')
+  .attr({
+    'd': line(data[0]),
+    'y': 0,
+    'stroke': '#000',
+    'stroke-width': '1px',
+    'fill':value
+  });
+    
+}
+
+  </script>
+  <!--
+  <svg width="800" height="800"><path d="M10,10L50,100L60,50L100,30" y="0" stroke="#000" stroke-width="5px" fill="none"></path></svg>
+    -->
+
+</body></html>

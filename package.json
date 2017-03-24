@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "watchify src/main.js -v -t [babelify ] -d -o public/js/main.js",
-    "server": "http-server ./public"
+    "start": "watchify src/main.js -v -t [babelify ] -d -o docs/js/main.js",
+    "server": "http-server ./docs"
   },
   "author": "",
   "license": "ISC",

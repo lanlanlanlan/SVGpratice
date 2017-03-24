@@ -1,19 +1,19 @@
-
 import * as d3 from 'd3';
-import math from './lib/math.min.js';
+import math from './libs/math.min.js';
+
+
 var data = [
     [{x: 50,y: 50}, {x: 50,y: 100}, {x: 100, y: 100  }, {x: 100,y: 50}],
   ];
-
+ 
 var offset = 3;//line offset 
-var svg = d3.select('body')
+var _svg = d3.select('#svg_view')
   .append('svg')
   .attr({
     'width': 400,
     'height': 400,
-    'id':'svg'
+    'id':'svgCavas'
   });
-
 var line = d3.svg.line()
   .x(function(d) {
     return d.x;
@@ -22,7 +22,7 @@ var line = d3.svg.line()
     return d.y;
   }).interpolate('linear-closed');
 
-svg.append('path')
+_svg.append('path')
   .attr({
     'd': line(data[0]),
     'y': 0,
@@ -30,6 +30,7 @@ svg.append('path')
     'stroke-width': '1px',
     'fill': 'none'
   });
+
 export function saveSVG(){
       //get svg element.
       var svg = document.getElementById("svg");
@@ -59,13 +60,13 @@ export function saveSVG(){
       //you can download svg file by right click menu.
 
   }
-export  function computeNewNode_old(element){
+function computeNewNode_old(element){
       for (var i = 0; i <element.length; i++) {
            var m = [element[i]]
       }
   } 
 
-export  function computeNewNode(p1, p2, p3) {
+function computeNewNode(p1, p2, p3) {
 
     let vectorData = [{x:0, y:0}, {x:0, y:0}];
     vectorData[0] = computeCrossVector( computeVector(p1, p2));
@@ -105,7 +106,7 @@ export  function computeNewNode(p1, p2, p3) {
     return math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
     
   }
-export  function createOffsetPoint(){
+function createOffsetPoint(){
       let sourceData = data.length-2, targetData = data.length-1;
       if(data[sourceData].length <2)
           console.log("node <= 2");
@@ -134,35 +135,35 @@ export  function createOffsetPoint(){
       }
   }
 
-export  function computeVector(p1, p2){
+function computeVector(p1, p2){
       return { 
         x:(p2.x - p1.x) ,
         y:(p2.y - p1.y)
       };
   }
   
-export  function computeCrossVector(p){
+function computeCrossVector(p){
     var temp = -p.x;
     p.x = p.y;
     p.y = temp;
     return p;
   }
-export  function computeUnitVector(p){
+ function computeUnitVector(p){
     var v = { x:p.x , y:p.y};
     var length = Math.sqrt(Math.pow(p.x, 2) + Math.pow(p.y, 2));
     v.x /= length ;
     v.y /= length;
     return v;
   }
-export  function computeSlope(p1 ,p2){
+ function computeSlope(p1 ,p2){
       return ((p2.y-p1.y)/(p2.x-p1.x));
   }
   //update()
-export  function updateData() {
+ function updateData() {
 
-  svg.selectAll("*").remove();
+  _svg.selectAll("*").remove();
   for (let i = 0; i < data.length; i++) {
-        svg.append('path')
+        _svg.append('path')
         .attr({
           'd': line(data[i]),
           'y': 0,
@@ -175,8 +176,29 @@ export  function updateData() {
     
 }
 export function realtimeRending(d){
+ 
     offset = d;
     data.push([]);
     createOffsetPoint();
     updateData();
+}
+
+export function setData(svgVertices){
+
+  let arr= [];
+
+    for(let i = 0 ; i < svgVertices.length ;i++){
+     
+      for(let j in svgVertices){
+
+        if(svgVertices[j].order == i+1){
+                 
+           arr.push({x:svgVertices[j].svgPoint.x*100+window.innerWidth /4 , 
+                              y:svgVertices[j].svgPoint.y*100 + window.innerHeight /2})
+          }
+        }
+    }
+    data[0]=arr;
+    console.log(data);
+   updateData();
 }

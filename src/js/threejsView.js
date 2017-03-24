@@ -182,6 +182,7 @@ function setRaycast() {
 	// calculate objects intersecting the picking ray
 	let intersects = raycaster.intersectObjects(bracketfaces, true);
 	if (intersects.length == 0) return;
+
 	/************************
 	//show single face
 	for ( let i = 0; i < intersects.length; i++ ) {
@@ -433,10 +434,10 @@ function createSvgVertices(faceGeometry, svgVertices) {
 
 function rotateVertices(faces, vertice) {
 	let zVector = new THREE.Vector3(0, 0, 1);
-	let _cross = faces.normal.clone().cross(zVector);
+	let _cross = faces.normal.clone().cross(zVector).normalize();
 	let _angle = faces.normal.clone().angleTo(zVector);
 	if (isNaN(_angle))
 		return vertice;
-
+	
 	return vertice.clone().applyAxisAngle(_cross, _angle);
 }

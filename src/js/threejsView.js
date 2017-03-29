@@ -63,7 +63,7 @@ export function init() {
 
 
 	let loader = new THREE.ImageLoader(manager);
-	loader.load('../models/UV_Grid_Sm.jpg', function(image) {
+	loader.load('./models/UV_Grid_Sm.jpg', function(image) {
 
 		texture.image = image;
 		texture.needsUpdate = true;
@@ -73,7 +73,7 @@ export function init() {
 	//#pragma:model
 
 	loader = new THREE.OBJLoader(manager);
-	loader.load('../models/SD.obj', function(object) {
+	loader.load('./models/SD.obj', function(object) {
 
 		object.children[0].geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
 		//make sure smooth

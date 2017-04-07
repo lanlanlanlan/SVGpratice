@@ -6,49 +6,25 @@
  	<link rel="stylesheet" type="text/css" href="css/index.css">
  	<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				font-family: Monospace;
-				background-color: #aaa;
-				color: #fff;
-				margin: 0px;
-				overflow: hidden;
-			}
-			#info {
-				color: #fff;
-				position: absolute;
-				top: 10px;
-				width: 100%;
-				text-align: center;
-				z-index: 100;
-				display:block;
-			}
-			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
-			.Grid {
-			    display: flex;
-			}
-
-			.Grid-cell {
-			    flex: 1;
-			}
-		</style>
+		
  </head>
  <body>
- 	<div id="info">
-		<a href="http://threejs.org" target="_blank">three.js</a> - OBJLoader test
-	</div>
+
 	
 	<div class="Grid">
+			
 			<div id="svg_view" class="Grid-cell">
 				
 			</div>
 			<div id="threejs_view" class="Grid-cell"></div>
 		</div>
- 	<!--
- 	<div>
+ <!--	
+ <div>
       <button id="saveSVG" >儲存</button>
       <a id="link">download</a>
     </div>
+ -->
+ <!--
 <div class="flex-row">
 	<div class="flex-column-reverse">
 		<div class="flex-item item1">1
@@ -65,9 +41,10 @@
 </div>
 -->
  </body>
-   <script src="js/libs/three.js"></script>
+<script src="js/libs/three.js"></script>
 <script src="js/libs/OBJLoader.js"></script>
 <script src="js/libs/OrbitControls.js"></script>
- <script src="js/main.js"></script>
+<script src="js/libs/dat.gui.js" ></script>
+<script src="js/main.js"></script>
 
  </html>

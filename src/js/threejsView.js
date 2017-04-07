@@ -71,7 +71,7 @@ export function init() {
 	});
 
 	//#pragma:model
-
+//loader會爆炸喔
 	loader = new THREE.OBJLoader(manager);
 	loader.load('./models/SD.obj', function(object) {
 
@@ -88,6 +88,7 @@ export function init() {
 			}
 
 		});
+		
 
 		/************************
 		//full object
@@ -112,11 +113,12 @@ export function init() {
 			bracketfaces.push(_mesh);
 			//remesh object from loader and gruop it
 			_group.add(_mesh);
+		
 		}
 		//_group.position.x = 580;
 		//_group.position.z = -110;
 		scene.add(_group);
-
+		console.log("stop");
 	}, onProgress, onError);
 
 

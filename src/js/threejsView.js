@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as offset from './offset.js' 
+import math from './libs/math.min.js';
 //#pragma: main start
 let container;
 let camera, scene, renderer, raycaster;
@@ -440,6 +441,9 @@ function rotateVertices(faces, vertice) {
 	let _angle = faces.normal.clone().angleTo(zVector);
 	if (isNaN(_angle))
 		return vertice;
-	
-	return vertice.clone().applyAxisAngle(_cross, _angle);
+	let xVector = new THREE.Vector3(1,0,0);
+	let rotateVector = vertice.clone().applyAxisAngle(_cross, _angle);
+	let ang = faces.normal.clone().angleTo(xVector);
+	return rotateVector.clone().applyAxisAngle(zVector, ang);
+	//return  vertice.clone().applyAxisAngle(_cross, _angle);
 }

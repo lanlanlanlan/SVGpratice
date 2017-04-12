@@ -7,17 +7,18 @@ var data = [
 		x: 50,
 		y: 50
 	}, {
-		x: 100,
-		y: 50
-	}, {
-		x: 100,
-		y: 100
-	}, {
 		x: 50,
 		y: 100
+	}, {
+		x: 100,
+		y: 100
+	}, {
+		x: 100,
+		y: 50
 	}],
 ];
-
+let boundingBox = {oldSharp:{width:null, height:null},
+		newSharp:{width:null, height:null} };
 var offset = 3; //line offset 
 var _svg = d3.select('#svg_view')
 	.append('svg')
@@ -124,8 +125,17 @@ function computeNewNode(p1, p2, p3) {
 function createOffsetPoint() {
 	let sourceData = data.length - 2,
 		targetData = data.length - 1;
+		console.log(boundingBox);
+	if(boundingBox.oldSharp.width < boundingBox.newSharp.width || boundingBox.oldSharp.height < boundingBox.newSharp.height){
+			if(boundingBox.oldSharp.width!= null)
+			console.log("offset distance not enough");
+			//return ;
+		
+		
+	}
 	if (data[sourceData].length < 2)
 		console.log("node <= 2");
+	
 	else {
 
 		data[targetData].push({
@@ -150,6 +160,39 @@ function createOffsetPoint() {
 	}
 }
 
+function setBoundingBox(){
+	let maximumX = 0; 
+	let minimumX = 0;
+	let maximumY = 0;
+	let minimumY = 0;
+
+	for(let i = 0; i < data[data.length-1].length ; i++ ){
+		if(maximumX <= data[data.length-1][ i ].x)
+			maximumX = data[data.length-1][ i ].x;
+		else if(minimumX >= data[data.length-1][ i ].x)
+			minimumX = data[data.length-1][ i ].x;
+		else if(maximumY <= data[data.length-1][ i ].y)
+			maximumY = data[data.length-1][ i ].y;
+		else if(minimumY >= data[data.length-1][ i ].y)
+			minimumY = data[data.length-1][ i ].y;
+		console.log(minimumX);
+	console.log(maximumX);
+	}
+
+	if(data.length == 1){
+		boundingBox.newSharp.width = maximumX - minimumX;
+		boundingBox.newSharp.height = maximumY - minimumY;
+		
+	}
+	else {
+		boundingBox.oldSharp.width = boundingBox.newSharp.width;
+		boundingBox.oldSharp.height = boundingBox.newSharp.height;
+
+		boundingBox.newSharp.width = maximumX - minimumX;
+		boundingBox.newSharp.height = maximumY - minimumY;
+	}
+	
+}
 function computeVector(p1, p2) {
 	return {
 		x: (p2.x - p1.x),
@@ -196,7 +239,7 @@ function updateData() {
 
 }
 export function realtimeRending(d) {
-
+	//setBoundingBox();
 	offset = d;
 	data.push([]);
 	createOffsetPoint();

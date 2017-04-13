@@ -125,14 +125,8 @@ function computeNewNode(p1, p2, p3) {
 function createOffsetPoint() {
 	let sourceData = data.length - 2,
 		targetData = data.length - 1;
-		console.log(boundingBox);
-	if(boundingBox.oldSharp.width < boundingBox.newSharp.width || boundingBox.oldSharp.height < boundingBox.newSharp.height){
-			if(boundingBox.oldSharp.width!= null)
-			console.log("offset distance not enough");
-			//return ;
 		
-		
-	}
+
 	if (data[sourceData].length < 2)
 		console.log("node <= 2");
 	
@@ -161,22 +155,22 @@ function createOffsetPoint() {
 }
 
 function setBoundingBox(){
-	let maximumX = 0; 
-	let minimumX = 0;
-	let maximumY = 0;
-	let minimumY = 0;
+	let maximumX =  data[data.length-1][0].x; 
+	let minimumX =  data[data.length-1][0].x;
+	let maximumY =  data[data.length-1][0].y;
+	let minimumY =  data[data.length-1][0].y;
 
-	for(let i = 0; i < data[data.length-1].length ; i++ ){
+
+	for(let i = 1; i < data[data.length-1].length ; i++ ){
 		if(maximumX <= data[data.length-1][ i ].x)
 			maximumX = data[data.length-1][ i ].x;
-		else if(minimumX >= data[data.length-1][ i ].x)
+		if(minimumX >= data[data.length-1][ i ].x)
 			minimumX = data[data.length-1][ i ].x;
-		else if(maximumY <= data[data.length-1][ i ].y)
+		if(maximumY <= data[data.length-1][ i ].y)
 			maximumY = data[data.length-1][ i ].y;
-		else if(minimumY >= data[data.length-1][ i ].y)
+		if(minimumY >= data[data.length-1][ i ].y)
 			minimumY = data[data.length-1][ i ].y;
-		console.log(minimumX);
-	console.log(maximumX);
+	
 	}
 
 	if(data.length == 1){
@@ -192,6 +186,17 @@ function setBoundingBox(){
 		boundingBox.newSharp.height = maximumY - minimumY;
 	}
 	
+}
+ 
+function polygon_area()
+{
+    let area = 0;
+    let N = data[data.length-1].length;
+    for (let i=0; i<data[data.length-1].length; ++i){
+        area += data[data.length-1][i].x * data[data.length-1][(i+1)%N].y;
+        area -= data[data.length-1][i].y * data[data.length-1][(i+1)%N].x;
+    }
+    console.log(math.abs(area) / 2);
 }
 function computeVector(p1, p2) {
 	return {
@@ -240,6 +245,7 @@ function updateData() {
 }
 export function realtimeRending(d) {
 	//setBoundingBox();
+	polygon_area();
 	offset = d;
 	data.push([]);
 	createOffsetPoint();
@@ -263,7 +269,13 @@ export function setData(svgVertices) {
 			}
 		}
 	}
-	data[0] = arr;
+
+	/*data[0] = arr;
 	console.log(data);
+	updateData();*/
+	while(data.length != 0)
+		data.pop();
+	data.push(arr);
 	updateData();
+
 }

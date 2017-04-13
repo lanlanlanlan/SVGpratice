@@ -257,6 +257,33 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 		order++;
 	}
 	console.log(svgVertices);
+	if(ClockwiseDirection(svgVertices) >0 )
+		restructureOrder(svgVertices);
+	
+}
+function ClockwiseDirection(svgVertices){
+	let p1 = svgVertices[0];
+	let p2, p3;
+	for(let i in svgVertices){
+		if(svgVertices[i].order == 2)
+			p2 = svgVertices[i];
+		else if(svgVertices[i].order == 3)
+			p3 = svgVertices[i];
+	}
+	
+	let zVector = new THREE.Vector3(0, 0, 1);
+	let vectorP1P2 =  p2.svgPoint.clone().sub(p1.svgPoint);
+	let vectorP1P3 = p3.svgPoint.clone().sub(p1.svgPoint);
+	let crossVector = vectorP1P2.cross(vectorP1P3).normalize();
+
+	// -1 is counterClockwise ; 1 is Clockwise
+	return crossVector.dot(zVector);
+}
+
+function restructureOrder(svgVertices){
+	for (let i in svgVertices){
+		svgVertices[ i ].order = math.abs(svgVertices[ i ].order - svgVertices.length -1);
+	}
 }
 
 function getNextPointIndex(svgVertices, relation, currentIndex) {
@@ -439,7 +466,8 @@ function rotateVertices(faces, vertice) {
 	let zVector = new THREE.Vector3(0, 0, 1);
 	let _cross = faces.normal.clone().cross(zVector).normalize();
 	let _angle = faces.normal.clone().angleTo(zVector);
-	if (isNaN(_angle))
+	
+	if (isNaN(_angle) || _angle == math.PI)
 		return vertice;
 	let xVector = new THREE.Vector3(1,0,0);
 	let rotateVector = vertice.clone().applyAxisAngle(_cross, _angle);

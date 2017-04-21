@@ -186,6 +186,10 @@ function setBoundingBox(){
 		boundingBox.newSharp.height = maximumY - minimumY;
 	}
 	
+	console.log("maximumX=" + maximumX);
+	console.log("maximumY=" + maximumY);
+	console.log("minimumX=" + minimumX);
+	console.log("minimumY=" + minimumY);
 }
  
 function polygon_area()
@@ -255,7 +259,6 @@ export function realtimeRending(d) {
 export function setData(svgVertices) {
 
 	let arr = [];
-
 	for (let i = 0; i < svgVertices.length; i++) {
 
 		for (let j in svgVertices) {
@@ -276,6 +279,7 @@ export function setData(svgVertices) {
 	while(data.length != 0)
 		data.pop();
 	data.push(arr);
+	setBoundingBox();
 	updateData();
 
 }

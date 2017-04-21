@@ -467,11 +467,21 @@ function rotateVertices(faces, vertice) {
 	let _cross = faces.normal.clone().cross(zVector).normalize();
 	let _angle = faces.normal.clone().angleTo(zVector);
 	
-	if (isNaN(_angle) || _angle == math.PI)
+	if (isNaN(_angle) || _angle == math.PI){
 		return vertice;
+	}
 	let xVector = new THREE.Vector3(1,0,0);
 	let rotateVector = vertice.clone().applyAxisAngle(_cross, _angle);
 	let ang = faces.normal.clone().angleTo(xVector);
+	//adjust start
+	if(faces.normal.clone().x >0)
+		return rotateVector.clone().applyAxisAngle(zVector, ang-math.PI);
+	if(faces.normal.clone().z >0)
+		return rotateVector.clone().applyAxisAngle(zVector, ang+math.PI/2);
+	if(faces.normal.clone().z <0)
+		return rotateVector.clone().applyAxisAngle(zVector, ang-math.PI/2);
+	//adjust end
+	
 	return rotateVector.clone().applyAxisAngle(zVector, ang);
 	//return  vertice.clone().applyAxisAngle(_cross, _angle);
 }

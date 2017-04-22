@@ -72,54 +72,25 @@ export function init() {
 	});
 
 	//#pragma:model
-//loader會爆炸喔
 	loader = new THREE.OBJLoader(manager);
-	loader.load('./models/SD.obj', function(object) {
-
-		object.children[0].geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
-		//make sure smooth
-		object.children[0].geometry.computeVertexNormals();
+	loader.load('./models/32_deleteLine.obj', function(object) {
+		for(let i in object.children){
+			object.children[i].geometry = new THREE.Geometry().fromBufferGeometry(object.children[i].geometry);
+			//make sure smooth
+			object.children[i].geometry.computeVertexNormals();
+		}
+		
 
 		object.traverse(function(child) {
-
 			if (child instanceof THREE.Mesh) {
-
 				child.material.map = texture;
-
 			}
-
 		});
 		
-
-		/************************
-		//full object
-		object.position.y = 5;
-		scene.add( object );
-		*************************/
-
-		let _group = new THREE.Group();
+		object.name = "WholeModel";
 		bracket.push(object);
-		let _geometry = object.children[0].geometry;
-		for (let i in _geometry.faces) {
+		scene.add( object );
 
-			let _mesh = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshPhongMaterial({
-				color: 0xf0f0f0
-			}));
-
-			_mesh.geometry.faces.push(_geometry.faces[i]);
-
-			for (let j in _geometry.vertices) {
-				_mesh.geometry.vertices.push(_geometry.vertices[j]);
-			}
-			bracketfaces.push(_mesh);
-			//remesh object from loader and gruop it
-			_group.add(_mesh);
-		
-		}
-		//_group.position.x = 580;
-		//_group.position.z = -110;
-		scene.add(_group);
-		console.log("stop");
 	}, onProgress, onError);
 
 
@@ -138,6 +109,30 @@ export function init() {
 	raycaster = new THREE.Raycaster();
 	document.addEventListener('dblclick', setRaycast, false);
 
+}
+function createBracketfaces(object){
+	
+	let _group = new THREE.Group();
+	
+	let _geometry = object.geometry;
+	for (let i in _geometry.faces) {
+
+		let _mesh = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshPhongMaterial({
+			color: 0xf0f0f0
+		}));
+
+		_mesh.geometry.faces.push(_geometry.faces[i]);
+
+		for (let j in _geometry.vertices) {
+			_mesh.geometry.vertices.push(_geometry.vertices[j]);
+		}
+		bracketfaces.push(_mesh);
+		//remesh object from loader and gruop it
+		_group.add(_mesh);
+	
+	}
+	_group.name = "PeaceModel";
+	scene.add(_group);
 }
 
 function empty(array) {
@@ -181,9 +176,17 @@ function render() {
 function setRaycast() {
 	// update the picking ray with the camera and mouse position
 	raycaster.setFromCamera(mouse, camera);
-
+	let intersects;
+	if(bracketfaces.length == 0){
+		intersects = raycaster.intersectObjects(bracket, true);
+		createBracketfaces(intersects[0].object);
+		scene.getObjectByName("WholeModel").visible=false;
+		//camera.zoom = 10;
+		//camera.updateProjectionMatrix();
+		return;
+	}
 	// calculate objects intersecting the picking ray
-	let intersects = raycaster.intersectObjects(bracketfaces, true);
+	intersects = raycaster.intersectObjects(bracketfaces, true);
 	if (intersects.length == 0) return;
 
 	/************************
@@ -197,6 +200,12 @@ function setRaycast() {
 	}
 	*************************/
 	//show connect face
+	if(bracketfaces.length != 0){
+		if(scene.getObjectByName("WholeModel").visible){
+			scene.getObjectByName("WholeModel").visible=false;
+			console.log(scene.getObjectByName("WholeModel").visible);
+		}
+
 	let color = Math.random() * 0xffffff;
 	let selectedfaces = [];
 	for (let i in bracketfaces) {
@@ -231,6 +240,7 @@ function setRaycast() {
 	
 
 	offset.setData(svgVertices);
+	}
 }
 
 function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
@@ -481,7 +491,7 @@ function rotateVertices(faces, vertice) {
 	if(faces.normal.clone().z <0)
 		return rotateVector.clone().applyAxisAngle(zVector, ang-math.PI/2);
 	//adjust end
-	
+
 	return rotateVector.clone().applyAxisAngle(zVector, ang);
 	//return  vertice.clone().applyAxisAngle(_cross, _angle);
 }

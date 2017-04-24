@@ -3,7 +3,7 @@ import * as offset from './offset.js'
 import math from './libs/math.min.js';
 //#pragma: main start
 let container;
-let camera, scene, renderer, raycaster;
+let camera, scene, renderer, raycaster, controls;
 let windowHalfX = window.innerWidth / 2;
 let mouse = new THREE.Vector2();
 let bracket = [];
@@ -27,18 +27,22 @@ export function init() {
 	camera.position.y = 10;
 	//#pragma: scene
 
+
 	scene = new THREE.Scene();
 	window.scene = scene;
 	//set lighting
 	let ambient = new THREE.AmbientLight(0xbbbbbb);
+	ambient.name = "ambient";
 	scene.add(ambient);
 
 	let directionalLight = new THREE.DirectionalLight(0x666666);
 	directionalLight.position.set(1, 1, 1);
+	directionalLight.name = "directionalLight-1";
 	scene.add(directionalLight);
 
 	let directionalLight2 = new THREE.DirectionalLight(0x666666);
 	directionalLight2.position.set(-1, -1, -1);
+	directionalLight2.name = "directionalLight-2";
 	scene.add(directionalLight2);
 
 
@@ -163,7 +167,7 @@ export function animate() {
 }
 
 function SetControls() {
-	let controls = new THREE.OrbitControls(camera, renderer.domElement);
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.minDistance = 2;
 	controls.maxDistance = 50;
 	scene.add(new THREE.AxisHelper(20));
@@ -179,10 +183,21 @@ function setRaycast() {
 	let intersects;
 	if(bracketfaces.length == 0){
 		intersects = raycaster.intersectObjects(bracket, true);
-		createBracketfaces(intersects[0].object);
-		scene.getObjectByName("WholeModel").visible=false;
-		//camera.zoom = 10;
-		//camera.updateProjectionMatrix();
+		if (intersects.length == 0) return;
+
+		createBracketfaces( intersects[0].object );
+		scene.getObjectByName("WholeModel").visible = false;
+		intersects[0].object.geometry.computeBoundingBox();
+		let lookAtPoint = intersects[0].object.geometry.boundingBox.center();
+
+		camera.lookAt( lookAtPoint );
+		
+		camera.zoom = 30; // zoom <=10 is fine 
+
+		camera.updateProjectionMatrix ()
+		controls.target = lookAtPoint;
+		controls.object.updateProjectionMatrix ()
+
 		return;
 	}
 	// calculate objects intersecting the picking ray
@@ -206,40 +221,40 @@ function setRaycast() {
 			console.log(scene.getObjectByName("WholeModel").visible);
 		}
 
-	let color = Math.random() * 0xffffff;
-	let selectedfaces = [];
-	for (let i in bracketfaces) {
-		let normal1 = bracketfaces[i].geometry.faces[0].normal;
-		let normal2 = intersects[0].object.geometry.faces[0].normal;
-		let face1 = bracketfaces[i].geometry.faces;
-		let face2 = intersects[0].object.geometry.faces;
-		if (sameNormal(normal1, normal2) && sameplane(face1, face2, intersects[0].object.geometry.vertices) <= 0.00000001) {
-			selectedfaces.push(bracketfaces[i]);
-		}
-
-	}
-	let svgVertices = [];
-	let verticesRelation = [];
-
-	for (let i in selectedfaces) {
-		let minLimit = intersects[0].object.geometry.faces[0].a - selectedfaces.length * 2.5;
-		let maxLimit = intersects[0].object.geometry.faces[0].c + selectedfaces.length * 2.5;
-		if (selectedfaces[i].geometry.faces[0].a >= minLimit) {
-			if (selectedfaces[i].geometry.faces[0].c <= maxLimit) {
-				selectedfaces[i].material.color.set(color);
-				createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
-
+		let color = Math.random() * 0xffffff;
+		let selectedfaces = [];
+		for (let i in bracketfaces) {
+			let normal1 = bracketfaces[i].geometry.faces[0].normal;
+			let normal2 = intersects[0].object.geometry.faces[0].normal;
+			let face1 = bracketfaces[i].geometry.faces;
+			let face2 = intersects[0].object.geometry.faces;
+			if (sameNormal(normal1, normal2) && sameplane(face1, face2, intersects[0].object.geometry.vertices) <= 0.00000001) {
+				selectedfaces.push(bracketfaces[i]);
 			}
-		} else {
-			//remove disconnect face
-			selectedfaces.splice(i, 1);
+
 		}
+		let svgVertices = [];
+		let verticesRelation = [];
 
-	}
-	setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
-	
+		for (let i in selectedfaces) {
+			let minLimit = intersects[0].object.geometry.faces[0].a - selectedfaces.length * 2.5;
+			let maxLimit = intersects[0].object.geometry.faces[0].c + selectedfaces.length * 2.5;
+			if (selectedfaces[i].geometry.faces[0].a >= minLimit) {
+				if (selectedfaces[i].geometry.faces[0].c <= maxLimit) {
+					selectedfaces[i].material.color.set(color);
+					createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
 
-	offset.setData(svgVertices);
+				}
+			} else {
+				//remove disconnect face
+				selectedfaces.splice(i, 1);
+			}
+
+		}
+		setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
+		
+
+		offset.setData(svgVertices);
 	}
 }
 

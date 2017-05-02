@@ -217,7 +217,7 @@ function setRaycast() {
 	//show connect face
 	if(bracketfaces.length != 0){
 		if(scene.getObjectByName("WholeModel").visible){
-			scene.getObjectByName("WholeModel").visible=false;
+			scene.getObjectByName("WholeModel").visible = false;
 			console.log(scene.getObjectByName("WholeModel").visible);
 		}
 
@@ -236,27 +236,70 @@ function setRaycast() {
 		let svgVertices = [];
 		let verticesRelation = [];
 
-		for (let i in selectedfaces) {
-			let minLimit = intersects[0].object.geometry.faces[0].a - selectedfaces.length * 2.5;
-			let maxLimit = intersects[0].object.geometry.faces[0].c + selectedfaces.length * 2.5;
-			if (selectedfaces[i].geometry.faces[0].a >= minLimit) {
-				if (selectedfaces[i].geometry.faces[0].c <= maxLimit) {
-					selectedfaces[i].material.color.set(color);
-					createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
-
-				}
-			} else {
-				//remove disconnect face
-				selectedfaces.splice(i, 1);
-			}
-
-		}
-		setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
+		//remove disconnect faces
+		selectedfaces = dfs(selectedfaces,intersects[0].object);
 		
+		for(let i in selectedfaces){
+			selectedfaces[i].material.color.set(color);
+			createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
+		}
+
+		setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
+		console.log("selectedfaces = ");console.log( selectedfaces);
 
 		offset.setData(svgVertices);
 	}
 }
+function faceWithSamePoint(connect, selectedfaces ){
+	let _vertices = selectedfaces.geometry.vertices;
+	let face2 = selectedfaces.geometry.faces[0];
+	let face1 = connect.geometry.faces[0];
+	if ( _vertices[face1.a].equals(_vertices[face2.a]))
+		return true;
+	else if ( _vertices[face1.a].equals(_vertices[face2.b]) )
+		return true;
+	else if ( _vertices[face1.a].equals( _vertices[face2.c]))
+		return true;
+	else if ( _vertices[face1.b].equals(_vertices[face2.a]))
+		return true;
+	else if ( _vertices[face1.b].equals(_vertices[face2.b]))
+		return true;
+	else if ( _vertices[face1.b].equals(_vertices[face2.c]))
+		return true;
+	else if ( _vertices[face1.c].equals(_vertices[face2.a]))
+		return true;
+	else if ( _vertices[face1.c].equals(_vertices[face2.b]))
+		return true;
+	else if ( _vertices[face1.c] .equals(_vertices[face2.c]))
+		return true;
+	return false;
+}
+
+function dfs(selectedfaces,intersect){
+	let connectFaces = [];
+	connectFaces.push(intersect);
+	let done = false;
+	let length = connectFaces.length;
+
+	while(!done){
+		for(let i = 0; i< connectFaces.length ; i++){
+			for(let j in selectedfaces){
+				if(connectFaces[i] == selectedfaces[j]) continue;
+				if(faceWithSamePoint(connectFaces[ i ], selectedfaces[ j ] ) && !connectFaces.includes(selectedfaces[ j ]) ){
+					connectFaces.push(selectedfaces[ j ]);
+				}
+			}
+			length = connectFaces.length;
+		}
+		if(length == connectFaces.length)
+			done = true;
+	}
+
+	console.log("connectFace = ");console.log( connectFace);
+	return connectFace;
+}
+
+
 
 function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 	for (let i in svgVertices) {
@@ -367,19 +410,6 @@ function restructureRelation(vertice, relation) {
 	}
 
 
-}
-
-function clipface(faces) {
-	for (let i in faces) {
-		if (faces[i].normal.x == -0)
-			faces[i].normal.x = faces[i].normal.x * (-1);
-
-		if (faces[i].normal.y == -0)
-			faces[i].normal.y = faces[i].normal.y * (-1);
-
-		if (faces[i].normal.z == -0)
-			faces[i].normal.z = faces[i].normal.z * (-1);
-	}
 }
 
 function sameNormal(normal1, normal2) {

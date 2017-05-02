@@ -279,6 +279,7 @@ export function setData(svgVertices) {
 	while(data.length != 0)
 		data.pop();
 	data.push(arr);
+	console.log(data);
 	setBoundingBox();
 	updateData();
 

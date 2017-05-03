@@ -111,8 +111,8 @@ export function init() {
 
 	//#pragma: raycaster
 	raycaster = new THREE.Raycaster();
-	document.addEventListener('dblclick', setRaycast, false);
-
+	// document.addEventListener('dblclick', setRaycast, false);
+	document.getElementById('threejs_view').addEventListener('dblclick', setRaycast, false);
 }
 function createBracketfaces(object){
 	
@@ -240,12 +240,12 @@ function setRaycast() {
 		selectedfaces = dfs(selectedfaces,intersects[0].object);
 		
 		for(let i in selectedfaces){
-			selectedfaces[i].material.color.set(color);
+			selectedfaces[i].material.color.set(Math.random() * 0xffffff);
 			createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
 		}
 
 		setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
-		console.log("selectedfaces = ");console.log( selectedfaces);
+		//console.log("selectedfaces = ");console.log( selectedfaces);
 
 		offset.setData(svgVertices);
 	}
@@ -295,8 +295,8 @@ function dfs(selectedfaces,intersect){
 			done = true;
 	}
 
-	console.log("connectFace = ");console.log( connectFace);
-	return connectFace;
+	//console.log("connectFaces = ");console.log( connectFaces);
+	return connectFaces;
 }
 
 
@@ -313,7 +313,7 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 				verticesRelation[i].push(vertices[faces.c]);
 			}
 		}
-		restructureRelation(svgVertices[i].originPoint, verticesRelation[i]);
+		verticesRelation[i] = restructureRelation(svgVertices[i].originPoint, verticesRelation[i]);
 	}
 
 	let order = 2;
@@ -327,8 +327,29 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 	console.log(svgVertices);
 	if(ClockwiseDirection(svgVertices) >0 )
 		restructureOrder(svgVertices);
-	
+
+
 }
+function shiftOrder(svgVertices){
+	for (let i in svgVertices){
+		if(svgVertices[ i ].order - 1 == 0)
+			svgVertices[ i ].order = svgVertices.length;
+		svgVertices[ i ].order -= 1;
+	}
+}
+function verticesRelationMaxNodeCount(verticesRelation){
+	let node = {maxCount: 0 , index :null} ;
+	for(let i in verticesRelation){
+		if(verticesRelation[ i ].length > node.maxCount){
+			node.maxCount = verticesRelation[ i ].length;
+		}
+		if(verticesRelation[ i ].length > 2)
+			node.index = i;
+	}
+	return node;
+}
+
+
 function ClockwiseDirection(svgVertices){
 	let p1 = svgVertices[0];
 	let p2, p3;
@@ -388,28 +409,25 @@ function getIndexOfsvgVertices(svgVertices, vertice) {
 }
 
 function restructureRelation(vertice, relation) {
-	//remove face self
+	//remove vertice self
 	for (let i = relation.length - 1; i >= 0; i--) {
 		if (relation[i].equals(vertice))
 			relation.splice(i, 1);
 	}
-	//remove face with repeat 
-	for (let i in relation) {
+	//collect repeat vertice
+	let dup = [];
+	for (let i of relation) {
 		let count = 0;
-		let current = relation[i];
-		for (let j in relation) {
-			if (relation[i].equals(relation[j]))
+		for (let j of relation) {
+			if ( i.equals( j ) )
 				count++;
 		}
 		if (count == 2) {
-			for (let k = relation.length - 1; k >= 0; k--) {
-				if (relation[k].equals(current))
-					relation.splice(k, 1);
-			}
+			dup.push(i);
 		}
 	}
 
-
+	return relation.filter(x=>!dup.find( v=>v.equals(x) ) );
 }
 
 function sameNormal(normal1, normal2) {

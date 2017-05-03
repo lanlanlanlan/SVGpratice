@@ -259,6 +259,7 @@ export function realtimeRending(d) {
 export function setData(svgVertices) {
 
 	let arr = [];
+
 	for (let i = 0; i < svgVertices.length; i++) {
 
 		for (let j in svgVertices) {
@@ -280,7 +281,7 @@ export function setData(svgVertices) {
 		data.pop();
 	data.push(arr);
 	console.log(data);
-	setBoundingBox();
+	//setBoundingBox();
 	updateData();
 
 }

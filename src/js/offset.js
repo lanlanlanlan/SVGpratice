@@ -74,6 +74,7 @@ export function saveSVG() {
 
 }
 
+
 function computeNewNode(p1, p2, p3) {
 
 	let vectorData = [{
@@ -83,11 +84,23 @@ function computeNewNode(p1, p2, p3) {
 		x: 0,
 		y: 0
 	}];
-	vectorData[0] = computeCrossVector(computeVector(p1, p2));
-	vectorData[1] = computeCrossVector(computeVector(p2, p3));
+	let vectorP1P2 = computeVector(p1, p2);
+	let vectorP2P3 = computeVector(p2, p3);
+	vectorData[0] = computeCrossVector(vectorP1P2);
+	vectorData[1] = computeCrossVector(vectorP2P3);
 
-	let lineData = [],
-		linePx, linePy;
+	let lineData = [], linePx, linePy, crossUnitVector;
+
+	let _vectorP1P2 = new THREE.Vector2(vectorP1P2.x , vectorP1P2.y);
+	let _vectorP2P3 = new THREE.Vector2(vectorP2P3.x , vectorP2P3.y);
+	if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) -1) <= 0.00000001){
+		linePx = p2.x + computeUnitVector(vectorData[0]).x * offset;
+		linePy = p2.y + computeUnitVector(vectorData[0]).y * offset;
+		lineData.push( linePx);
+		lineData.push( linePy);
+		return lineData;
+		
+	}
 
 	//first point of line1
 	linePx = p1.x + computeUnitVector(vectorData[0]).x * offset;

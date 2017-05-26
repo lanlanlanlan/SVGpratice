@@ -325,9 +325,29 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 		order++;
 	}
 	console.log(svgVertices);
-	if(ClockwiseDirection(svgVertices) >0 )
-		restructureOrder(svgVertices);
 
+	if(ClockwiseDirection(svgVertices,1 , order-1) >0 )
+		reverseOrder(svgVertices);
+	console.log(getIndexOfWeirdPoint(svgVertices, 1, order-1, verticesRelation));
+	/********* 
+	second times
+	*******/
+	/*let node = verticesRelationMaxNodeCount(verticesRelation);
+	if( node.index != null){
+		while(svgVertices[node.index].order != order-1 )
+			shiftOrder(svgVertices);
+		current = node.index;
+		while (getNextPointIndex2(svgVertices, verticesRelation[current], current) != null) {
+			current = getNextPointIndex2(svgVertices, verticesRelation[current], current);
+			if(svgVertices[current].order == undefined){
+				svgVertices[current].order = order;
+				order++;
+			}
+			
+		}
+	}*/
+
+	console.log(svgVertices);
 
 }
 function shiftOrder(svgVertices){
@@ -348,36 +368,97 @@ function verticesRelationMaxNodeCount(verticesRelation){
 	}
 	return node;
 }
-
-
-function ClockwiseDirection(svgVertices){
-	let p1 = svgVertices[0];
-	let p2, p3;
-	for(let i in svgVertices){
-		if(svgVertices[i].order == 2)
-			p2 = svgVertices[i];
-		else if(svgVertices[i].order == 3)
-			p3 = svgVertices[i];
+/*********/
+function getIndexOfWeirdPoint(svgVertices, startOrder, endOrder, verticesRelation){
+	 
+	let weirdPoint, weirdIndex, weirdVector;
+	for(let i = startOrder;  i <= endOrder; i++){
+		
+		weirdPoint = getSvgVerticeByOrder(svgVertices, i).originPoint;
+		weirdVector = new THREE.Vector3(weirdPoint.x , weirdPoint.y, weirdPoint.z);
+		weirdIndex = getIndexOfsvgVertices(svgVertices, weirdVector);// weirdPoint need vector3
+		if(verticesRelation[ weirdIndex ].length > 2)
+			return weirdIndex;
 	}
-	
-	let zVector = new THREE.Vector3(0, 0, 1);
-	let vectorP1P2 =  p2.svgPoint.clone().sub(p1.svgPoint);
-	let vectorP1P3 = p3.svgPoint.clone().sub(p1.svgPoint);
-	let crossVector = vectorP1P2.cross(vectorP1P3).normalize();
+	return null;
+	 
+}
 
+function ClockwiseDirection(svgVertices, startOrder, endOrder){
+	let total = 0;
+	//shoeslace formula need compute all node-vector once
+	for(let i = startOrder;  i <= endOrder; i++){
+		total+=ShoelaceFormula(svgVertices, startOrder, i);
+	}
+	return total;
+}
+//shoeslace formula one step
+function ShoelaceFormula(svgVertices , startOrder, currentOrder ){
+	let p1, p2 = getSvgVerticeByOrder(svgVertices , startOrder);
+
+	for (let i of svgVertices){
+		if(i.order == currentOrder)
+			p1 = i;
+		else if(i.order == currentOrder+1)
+			p2 = i;
+	}
+	let zVector = new THREE.Vector3(0, 0, 1);
+	let vectorP1 = p1.svgPoint.clone();
+	let vectorP2 = p2.svgPoint.clone();
+	let crossVector = vectorP1.cross(vectorP2);
+	
 	// -1 is counterClockwise ; 1 is Clockwise
 	return crossVector.dot(zVector);
 }
 
-function restructureOrder(svgVertices){
+
+//function reverseOrder(svgVertices , start order ,end order)
+function reverseOrder(svgVertices){
+	let maxOrder = 0;
+	for (let i of svgVertices){
+		if(i.order > maxOrder)
+			maxOrder = i.order;
+	}
 	for (let i in svgVertices){
-		svgVertices[ i ].order = math.abs(svgVertices[ i ].order - svgVertices.length -1);
+		svgVertices[ i ].order = math.abs(svgVertices[ i ].order - maxOrder -1);
 	}
 }
+
+
+function getNextPointIndex2(svgVertices, relation, currentIndex) {
+	let pointA = getIndexOfsvgVertices(svgVertices, relation[0]);
+	let pointB = getIndexOfsvgVertices(svgVertices, relation[1]);
+	if(relation.length >2  && svgVertices[currentIndex].order != undefined){
+		pointA = getIndexOfsvgVertices(svgVertices, relation[2]);
+		pointB = getIndexOfsvgVertices(svgVertices, relation[3]);
+	}
+
+	let current = svgVertices[currentIndex].svgPoint;
+	if (svgVertices[pointA].order == undefined && svgVertices[pointB].order == undefined) {
+		let xVector = new THREE.Vector3(1, 0, 0);
+		let vectorA = svgVertices[pointA].svgPoint.clone().sub(current);
+		let vectorB = svgVertices[pointB].svgPoint.clone().sub(current);
+		if (xVector.angleTo(vectorA) < xVector.angleTo(vectorB))
+			return pointA;
+		else if (xVector.angleTo(vectorB) < xVector.angleTo(vectorA))
+			return pointB;
+
+		return (vectorA.y < 0) ? pointA : pointB;
+	} else if (svgVertices[pointA].order != undefined && svgVertices[pointB].order != undefined)
+		return null;
+	else if (svgVertices[pointA].order != undefined)
+		return pointB;
+	else if (svgVertices[pointB].order != undefined)
+		return pointA;
+
+	return null;
+}
+
 
 function getNextPointIndex(svgVertices, relation, currentIndex) {
 	let pointA = getIndexOfsvgVertices(svgVertices, relation[0]);
 	let pointB = getIndexOfsvgVertices(svgVertices, relation[1]);
+
 	let current = svgVertices[currentIndex].svgPoint;
 	if (svgVertices[pointA].order == undefined && svgVertices[pointB].order == undefined) {
 		let xVector = new THREE.Vector3(1, 0, 0);
@@ -402,6 +483,14 @@ function getNextPointIndex(svgVertices, relation, currentIndex) {
 function getIndexOfsvgVertices(svgVertices, vertice) {
 	for (let i in svgVertices) {
 		if (vertice.equals(svgVertices[i].originPoint))
+			return i;
+	}
+
+	return null;
+}
+function getSvgVerticeByOrder(svgVertices, order) {
+	for (let i of svgVertices) {
+		if (i.order == order)
 			return i;
 	}
 

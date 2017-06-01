@@ -313,7 +313,7 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 				verticesRelation[i].push(vertices[faces.c]);
 			}
 		}
-		verticesRelation[i] = restructureRelation_old(svgVertices[i].originPoint, verticesRelation[i] );
+		verticesRelation[i] = mergeRelation(svgVertices[i].originPoint, verticesRelation[i] );
 	}
 	for(let i in svgVertices){
 		if(verticesRelation[i].length >2)
@@ -334,80 +334,7 @@ function setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation) {
 	
 	if(ClockwiseDirection(svgVertices,1 , order-1) >0 )
 		reverseOrder(svgVertices);
-	// let weirdIndex = getIndexOfWeirdPoint(svgVertices, startOrder, order-1, verticesRelation);
-	// //4.歧異點必須置於最後
 	
-	// if(weirdIndex != null){
-		
-	// 	while(svgVertices[weirdIndex].order != order -1  ){
-	// 		shiftOrder(svgVertices);
-			
-	// 	}
-
-		
-	// }
-	// startOrder = order;
-	// //2.檢測歧異點是否存在
-	// while(order-1 != svgVertices.length){
-	// 	//5.以歧異點為起始再次進入
-	// 	current = weirdIndex;
-	// 	while (getNextPointIndex2(svgVertices, verticesRelation[current], current) != null) {
-	// 		current = getNextPointIndex2(svgVertices, verticesRelation[current], current);
-	// 		if(svgVertices[current].order == undefined){
-	// 			svgVertices[current].order = order;
-	// 			order++;
-	// 		}
-			
-	// 	}
-		
-	// 	if(startOrder != order){
-	// 		if(ClockwiseDirection(svgVertices, startOrder , order-1) >0 )
-	// 			reverseOrder(svgVertices);
-	// 	}
-	// 	weirdIndex = getIndexOfWeirdPoint(svgVertices, startOrder, order-1, verticesRelation);
-	// 	startOrder = order;
-	// 	//4.歧異點必須置於最後
-	// 	if(weirdIndex != null){
-	// 		while(svgVertices[weirdIndex].order != order -1  ){
-	// 			shiftOrder(svgVertices);
-	// 		}
-	// 	}
-	// }
-
-	// work OK
-	/*
-	let order = 2;
-	let current = 0;
-	svgVertices[current].order = 1;
-	while (getNextPointIndex(svgVertices, verticesRelation[current], current) != null) {
-		current = getNextPointIndex(svgVertices, verticesRelation[current], current);
-		svgVertices[current].order = order;
-		order++;
-	}
-	console.log(svgVertices);
-
-	if(ClockwiseDirection(svgVertices,1 , order-1) >0 )
-		reverseOrder(svgVertices);
-	console.log(getIndexOfWeirdPoint(svgVertices, 1, order-1, verticesRelation));
-	*/
-	/********* 
-	second times
-	*******/
-	/*let node = verticesRelationMaxNodeCount(verticesRelation);
-	if( node.index != null){
-		while(svgVertices[node.index].order != order-1 )
-			shiftOrder(svgVertices);
-		current = node.index;
-		while (getNextPointIndex2(svgVertices, verticesRelation[current], current) != null) {
-			current = getNextPointIndex2(svgVertices, verticesRelation[current], current);
-			if(svgVertices[current].order == undefined){
-				svgVertices[current].order = order;
-				order++;
-			}
-			
-		}
-	}*/
-
 	console.log(svgVertices);
 
 }
@@ -625,7 +552,7 @@ function getSvgVerticeByOrder(svgVertices, order) {
 }
 
 function restructureRelation(svgVertices, verticesRelation, currentIndex) {
-	//remove vertice self
+	
 	let vertice = svgVertices[currentIndex].originPoint ;
 	let _relation = verticesRelation[currentIndex]
 			
@@ -648,147 +575,42 @@ function restructureRelation(svgVertices, verticesRelation, currentIndex) {
 	let points = [pointA,pointB,pointC,pointD];
 	let vectors = points.map(x=>svgVertices[x].svgPoint.clone().sub(current).normalize());
 	
-	function qeqweqw1eq32e15464(index1,index2){
+	function handleWierdPoint(index1,index2){
 
 		let a = points[index1];
 		let b = points[index2];
-		if (math.abs(vectors[0].dot(vectors[2]) -1) <= 0.00000001){
+		if (math.abs(vectors[index1].dot(vectors[index2]) -1) <= 0.00000001){
 			for(let i in verticesRelation[a]){
 				if( getIndexOfsvgVertices(svgVertices, verticesRelation[a][i]) == currentIndex ){
 					
-					verticesRelation[a][i] = _relation[2];
+					verticesRelation[a][i] = _relation[index2];
 					break;
 				}
 			}
 			for(let i in verticesRelation[b]){
 				if( getIndexOfsvgVertices(svgVertices, verticesRelation[b][i]) == currentIndex ){
 					
-					verticesRelation[b][i] = _relation[0];
+					verticesRelation[b][i] = _relation[index1];
 					break;
 				}
 			}
-			_relation.splice(2, 1);
-			_relation.splice(0,1);
+			_relation.splice(index2, 1);
+			_relation.splice(index1,1);
 		}
 	}
 
-qeqweqw1eq32e15464(0,1)
-qeqweqw1eq32e15464(0,2)
-qeqweqw1eq32e15464(0,3)
-qeqweqw1eq32e15464(1,2)
-qeqweqw1eq32e15464(1,3)
-qeqweqw1eq32e15464(2,3)
-
-	let a = points[0];
-	let b = points[2];
-
-
-	if (math.abs(vectors[0].dot(vectors[2]) -1) <= 0.00000001){
-		for(let i in verticesRelation[a]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[a][i]) == currentIndex ){
-				
-				verticesRelation[a][i] = _relation[2];
-				break;
-			}
-		}
-		for(let i in verticesRelation[b]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[b][i]) == currentIndex ){
-				
-				verticesRelation[b][i] = _relation[0];
-				break;
-			}
-		}
-		_relation.splice(2, 1);
-		_relation.splice(0,1);
-	}
-
-////
-////
-////
-	if (math.abs(vectorA.dot(vectorC) -1) <= 0.00000001){
-		for(let i in verticesRelation[pointA]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointA][i]) == currentIndex ){
-				
-				verticesRelation[pointA][i] = _relation[2];
-				break;
-			}
-		}
-		for(let i in verticesRelation[pointC]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointC][i]) == currentIndex ){
-				
-				verticesRelation[pointC][i] = _relation[0];
-				break;
-			}
-		}
-		_relation.splice(2, 1);
-		_relation.splice(0,1);
-	}
-	else if (math.abs(vectorA.dot(vectorD) -1) <= 0.00000001){
-		for(let i in verticesRelation[pointA]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointA][i]) == currentIndex ){
-				
-				verticesRelation[pointA][i] =  _relation[3];
-				
-				break;
-			}
-		}
-		for(let i in verticesRelation[pointD]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointD][i]) == currentIndex ){
-				verticesRelation[pointD][i] =  _relation[0];
-				break;
-			}
-		}
-		_relation.splice(3, 1);
-		_relation.splice(0,1);		
-	}
-	else if (math.abs(vectorB.dot(vectorC) -1) <= 0.00000001){
-		for(let i in verticesRelation[pointB]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointB][i]) == currentIndex ){
-				
-				
-				verticesRelation[pointB][i]= _relation[2];
-				break;
-			}
-		}
-		for(let i in verticesRelation[pointC]){
-			if( getIndexOfsvgVertices(svgVertices, verticesRelation[pointC][i]) == currentIndex ){
-				
-				verticesRelation[pointC][i] = _relation[1];
-				break;
-			}
-		}
-		_relation.splice(2, 1);
-		_relation.splice(1,1);
-	}
-	else if (math.abs(vectorB.dot(vectorD) -1) <= 0.00000001){
-		for(let i in verticesRelation[pointB]){
-			if( getIndexOfsvgVertices(svgVertices,  verticesRelation[pointB][i]) == currentIndex ){
-				
-				
-				verticesRelation[pointB][i] = _relation[3];
-				break;
-			}
-		}
-		for(let i in verticesRelation[pointD]){
-			if( getIndexOfsvgVertices(svgVertices,  verticesRelation[pointD][i]) == currentIndex ){
-				
-				verticesRelation[pointD][i] =  _relation[1];
-				break;
-			}
-		}
-		_relation.splice(3, 1);
-		_relation.splice(1,1);
-	}
-
-	
+	handleWierdPoint(0 ,1);
+	handleWierdPoint(0 ,2);
+	handleWierdPoint(0 ,3);
+	handleWierdPoint(1 ,2);
+	handleWierdPoint(1 ,3);
+	handleWierdPoint(2 ,3);
 	
 	return _relation; 
 }
-function rRelation(){
 
-}
 
-function restructureRelation_old(vertice, relation) {
+function mergeRelation(vertice, relation) {
 	//remove vertice self
 	for (let i = relation.length - 1; i >= 0; i--) {
 		if (relation[i].equals(vertice))

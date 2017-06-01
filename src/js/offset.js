@@ -17,8 +17,9 @@ var data = [
 		y: 50
 	}],
 ];
-let boundingBox = {oldSharp:{width:null, height:null},
-		newSharp:{width:null, height:null} };
+
+let center = {x: null , y: null};
+
 var offset = 3; //line offset 
 var _svg = d3.select('#svg_view')
 	.append('svg')
@@ -40,7 +41,7 @@ _svg.append('path')
 		'd': line(data[0]),
 		'y': 0,
 		'stroke': '#000',
-		'stroke-width': '1px',
+		'stroke-width': '0px',
 		'fill': 'none'
 	});
 
@@ -167,44 +168,29 @@ function createOffsetPoint() {
 	}
 }
 
-function setBoundingBox(){
-	let maximumX =  data[data.length-1][0].x; 
-	let minimumX =  data[data.length-1][0].x;
-	let maximumY =  data[data.length-1][0].y;
-	let minimumY =  data[data.length-1][0].y;
-
-
-	for(let i = 1; i < data[data.length-1].length ; i++ ){
-		if(maximumX <= data[data.length-1][ i ].x)
-			maximumX = data[data.length-1][ i ].x;
-		if(minimumX >= data[data.length-1][ i ].x)
-			minimumX = data[data.length-1][ i ].x;
-		if(maximumY <= data[data.length-1][ i ].y)
-			maximumY = data[data.length-1][ i ].y;
-		if(minimumY >= data[data.length-1][ i ].y)
-			minimumY = data[data.length-1][ i ].y;
-	
+function setCenter(){
+	let max = {x : -Infinity  , y:-Infinity  };
+	let min = {x:Infinity  , y:Infinity  };
+	for(let i of data[0]){
+		if(i.x < min.x)
+			min.x = i.x;
+		if(i.x > max.x)
+			max.x = i.x;
+		if(i.y < min.y)
+			min.y = i.y;
+		if(i.y > max.y)
+			max.y = i.y;
 	}
-
-	if(data.length == 1){
-		boundingBox.newSharp.width = maximumX - minimumX;
-		boundingBox.newSharp.height = maximumY - minimumY;
-		
-	}
-	else {
-		boundingBox.oldSharp.width = boundingBox.newSharp.width;
-		boundingBox.oldSharp.height = boundingBox.newSharp.height;
-
-		boundingBox.newSharp.width = maximumX - minimumX;
-		boundingBox.newSharp.height = maximumY - minimumY;
-	}
-	
-	console.log("maximumX=" + maximumX);
-	console.log("maximumY=" + maximumY);
-	console.log("minimumX=" + minimumX);
-	console.log("minimumY=" + minimumY);
+	center.x = (max.x + min.x ) /2;
+	center.y = (max.y + min.y) / 2;
 }
  
+export function getCenter(){
+	if(center.x == null || center.y == null)
+		setCenter();
+	return center;
+}
+
 function polygon_area()
 {
     let area = 0;
@@ -247,13 +233,16 @@ function computeSlope(p1, p2) {
 function updateData() {
 
 	_svg.selectAll("*").remove();
-	for (let i = 0; i < data.length; i++) {
-		_svg.append('path')
+	let g = _svg.append('g').attr({
+		'id':'group'
+	});
+	for (let i = 0; i < data.length; i++) {		
+		g.append('path')
 			.attr({
 				'd': line(data[i]),
 				'y': 0,
 				'stroke': '#000',
-				'stroke-width': '1px',
+				'stroke-width': '0px',
 				'fill': '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)
 			});
 	}
@@ -280,8 +269,8 @@ export function setData(svgVertices) {
 			if (svgVertices[j].order == i + 1) {
 
 				arr.push({
-					x: svgVertices[j].svgPoint.x * 100 + window.innerWidth / 4,
-					y: svgVertices[j].svgPoint.y * 100 + window.innerHeight / 2
+					x: svgVertices[j].svgPoint.x *200   ,
+					y: svgVertices[j].svgPoint.y  *200 
 				})
 			}
 		}
@@ -293,6 +282,7 @@ export function setData(svgVertices) {
 	while(data.length != 0)
 		data.pop();
 	data.push(arr);
+	setCenter();
 	console.log(data);
 	//setBoundingBox();
 	updateData();

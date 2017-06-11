@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import math from './libs/math.min.js';
-
+import * as main from '../main.js';
 //逆時針內縮 順時針放大
 var data = [
 	[{
@@ -19,7 +19,7 @@ var data = [
 ];
 
 let center = {x: null , y: null};
-
+let bounding = {width: null , height: null};
 var offset = 3; //line offset 
 var _svg = d3.select('#svg_view')
 	.append('svg')
@@ -168,6 +168,23 @@ function createOffsetPoint() {
 	}
 }
 
+function setBounding(){
+	let max = {x : -Infinity  , y:-Infinity  };
+	let min = {x:Infinity  , y:Infinity  };
+	for(let i of data[0]){
+		if(i.x < min.x)
+			min.x = i.x;
+		if(i.x > max.x)
+			max.x = i.x;
+		if(i.y < min.y)
+			min.y = i.y;
+		if(i.y > max.y)
+			max.y = i.y;
+	}
+
+	bounding.width = max.x-min.x;
+	bounding.height = max.y-min.y;
+}
 function setCenter(){
 	let max = {x : -Infinity  , y:-Infinity  };
 	let min = {x:Infinity  , y:Infinity  };
@@ -191,8 +208,12 @@ export function getCenter(){
 	return center;
 }
 
-function polygon_area()
-{
+export function getBounding(){
+	if(bounding.width == null || bounding.height == null)
+		setBounding();
+	return bounding;
+}
+function polygon_area(){
     let area = 0;
     let N = data[data.length-1].length;
     for (let i=0; i<data[data.length-1].length; ++i){
@@ -242,15 +263,17 @@ function updateData() {
 				'd': line(data[i]),
 				'y': 0,
 				'stroke': '#000',
-				'stroke-width': '0px',
+				'stroke-width': '1px',
+				'vector-effect':'non-scaling-stroke',
 				'fill': '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)
+				// 'fill': 'rgb(255,0,0)'
 			});
 	}
 
 
 }
 export function realtimeRending(d) {
-	//setBoundingBox();
+	
 	polygon_area();
 	offset = d;
 	data.push([]);
@@ -282,9 +305,104 @@ export function setData(svgVertices) {
 	while(data.length != 0)
 		data.pop();
 	data.push(arr);
+	setBounding();
 	setCenter();
 	console.log(data);
-	//setBoundingBox();
+	
 	updateData();
+	let scale =  getDefaultScale();
+	main.setSvgSize(scale, center);
 
 }
+
+function getDefaultScale(){
+	
+	let width = bounding.width;
+	let height = bounding.height;
+
+	const svgViewWidth = window.innerWidth / 2;
+	const svgViewHeight = window.innerHeight;
+	let scale = (svgViewWidth/width < svgViewHeight/height ) ? svgViewWidth/width:svgViewHeight/height
+	//0.618黃金比例
+	return scale*0.618 ;
+}
+
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+////////////////
+function updateData_test(){
+
+	
+	_svg.selectAll("*").remove();
+	let g = _svg.append('g').attr({
+		'id':'group'
+	});
+	for (let i = 0; i < data.length; i++) {		
+		g.append('path')
+			.attr({
+				'd': line(data[i]),
+				'y': 0,
+				'stroke': '#000',
+				'stroke-width': level3_blue_green.offsetStroke[i]+'px',
+				'vector-effect':'non-scaling-stroke',
+				'fill': 'rgb(' +level3_blue_green.offsetColor[i] +')'
+			});
+	}
+
+}
+function realtimeRending_test(d) {
+	let total = (bounding.width<bounding.height)?bounding.width:bounding.height;
+	polygon_area();
+	//offset = d*total;
+	offset = d;
+	data.push([]);
+	createOffsetPoint();
+	updateData_test();
+}
+export function autoDraw(){
+	for(let i = 0; i < level3_blue_green.offsetDistance.length ; i ++){
+		realtimeRending_test(level3_blue_green.offsetDistance[i]);
+	}
+}
+export function w(){
+	console.log("WOOOW~~~~~~~~");
+}
+// json
+let level3_blue_green = {offsetDistance :[0.5, 
+						0.5, 
+						0.5, 
+						0.5, 
+						0.4167,
+						0.4167,
+						0.4167,
+						0.4167],
+
+				offsetStroke :[1,
+						0,
+						0,
+						0,
+						0,
+						0,
+						0,
+						0,
+						0],
+
+				offsetColor :[ 	"82,75,97",
+						"125,132,181",
+						"194,206,242",
+						"249,242,244",
+						"206,213,208",
+						"157,178,176",
+						"159,185,168",
+						"124,129,104",
+						"68,71,82"
+
+					]    
+			}

@@ -396,8 +396,7 @@ function getIndexOfWeirdPoint(svgVertices, startOrder, endOrder, verticesRelatio
 		weirdIndex = getIndexOfsvgVertices(svgVertices, weirdVector);// weirdPoint need vector3
 		if(verticesRelation[ weirdIndex ].length > 2 )
 			return weirdIndex;
-		// if(verticesRelation[ weirdIndex ].length > 2 && getSvgVerticeByOrder(svgVertices, i).order != undefined)
-		// 	return weirdIndex;
+		
 
 	}
 	return null;

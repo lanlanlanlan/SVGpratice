@@ -14,13 +14,13 @@ let saveSVG = document.getElementById("saveSVG");
 saveSVG.onclick = offset.saveSVG();
 */
 let threeD_model  = {
-	offset : 5,
+	offset : 0.5,
 	gg:100
 };
 let twoD_model  = {
 	offset : 5,
-	ggkk:100,
-	scale: 1
+	ggkk:false,
+	scale: 1,
 };
 window.onload =  function(){
 	// right gui - 3D
@@ -41,7 +41,13 @@ window.onload =  function(){
 			+ 'scale(' + value + ') '  + 'translate(' + -center.x + ',' + -center.y +')' );
 		});
 
-	twoD_gui.add( twoD_model, 'ggkk', 1,5 );
+	let ggkkController = twoD_gui.add( twoD_model, 'ggkk');
+	ggkkController.onFinishChange(function(v){
+		offset.autoDraw();
+		// offset.w();
+		});
+	
+
 	let style = twoD_gui.domElement.style;
 
 	Object.assign(style, {
@@ -51,5 +57,12 @@ window.onload =  function(){
 	});
 
 	document.getElementById('svg_view').appendChild(twoD_gui.domElement);
+}
+
+export function setSvgSize(scale, center){
+	twoD_model.scale = scale;
+	document.getElementById('group').setAttribute('transform',
+		 'translate(' + window.innerWidth / 4 + ',' + window.innerHeight / 2 +') '
+		+ 'scale(' + scale + ') '  + 'translate(' + -center.x + ',' + -center.y +')' );
 }
 

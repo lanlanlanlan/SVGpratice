@@ -44,7 +44,7 @@ window.onload =  function(){
 	let ggkkController = twoD_gui.add( twoD_model, 'ggkk');
 	ggkkController.onFinishChange(function(v){
 		offset.autoDraw();
-		// offset.w();
+		offset.w();
 		});
 	
 

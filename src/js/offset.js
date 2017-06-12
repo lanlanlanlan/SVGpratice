@@ -166,6 +166,8 @@ function createOffsetPoint() {
 		}
 
 	}
+	//
+	restructureNode(data[targetData]);
 }
 
 function setBounding(){
@@ -366,13 +368,72 @@ function realtimeRending_test(d) {
 	createOffsetPoint();
 	updateData_test();
 }
+//return math.intersect([p0.x, p0.y], [p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]);
+function restructureNode(data){
+	for(let i = 0; i <data.length; i++){
+		let indexP0 = i;
+		let indexP1 = indexP0+1;
+		
+		if((i+1 )>data.length-1)
+			indexP1 -= data.length;
+		let P0 = data[indexP0];
+		let P1 = data[indexP1];
+
+		for(let j = 0; j<data.length-4; j++){
+			let IndexP2 = indexP0 +2+j;
+			let indexP3 = IndexP2+1;
+			
+			while(IndexP2 >data.length-1){
+				IndexP2-=(data.length);
+			}
+			while(indexP3>data.length-1){
+				indexP3-= (data.length)
+			}
+			let P2 = data[IndexP2];
+			let P3 = data[indexP3];
+			
+			let crossNode = math.intersect([P0.x, P0.y], [P1.x, P1.y], [P2.x, P2.y], [P3.x, P3.y]);
+			
+			if(crossNode!= null && pointAtLineFunction(P0,P1,P2,P3,crossNode)){
+				//remove & insert
+				let check = false;
+				for(let k = 0 ; k<(indexP3-indexP1);k++){
+					data.splice(indexP1, 1);
+					check = true;
+				}
+				let arr = {x: crossNode[0], y: crossNode[1]};
+				if(check){
+					data.splice(indexP1, 0,arr );
+					break;	
+				}
+				
+			}
+		}
+	}
+}
+function pointAtLineFunction(p0, p1, p2 , p3 , point){
+	
+	let crossP = {x:point[0] , y:point[1]};
+	let distanceP0P1 = distance(p0, p1);
+	let distanceP2P3 = distance(p2, p3);
+	if(distanceP0P1 == distance(p0,crossP) + distance(p1, crossP)){
+		if(distanceP2P3 == distance(p2,crossP) + distance(p3, crossP)){
+			return true;
+		}
+	}
+	return false;
+}
+function distance(p1, p2){
+	return math.sqrt(math.pow(p2.x-p1.x , 2) + math.pow(p2.y-p1.y , 2) );
+}
 export function autoDraw(){
 	for(let i = 0; i < level3_blue_green.offsetDistance.length ; i ++){
 		realtimeRending_test(level3_blue_green.offsetDistance[i]);
 	}
 }
 export function w(){
-	console.log("WOOOW~~~~~~~~");
+	for(let i of data)
+		console.log(i.length);
 }
 // json
 let level3_blue_green = {offsetDistance :[0.5, 

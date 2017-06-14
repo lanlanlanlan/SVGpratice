@@ -218,7 +218,7 @@ function setRaycast() {
 	if(bracketfaces.length != 0){
 		if(scene.getObjectByName("WholeModel").visible){
 			scene.getObjectByName("WholeModel").visible = false;
-			console.log(scene.getObjectByName("WholeModel").visible);
+			// console.log(scene.getObjectByName("WholeModel").visible);
 		}
 
 		let color = Math.random() * 0xffffff;
@@ -759,4 +759,14 @@ function rotateVertices(faces, vertice) {
 
 	return rotateVector.clone().applyAxisAngle(zVector, ang);
 	//return  vertice.clone().applyAxisAngle(_cross, _angle);
+}
+
+export function showWholeModel(){
+	if(!scene.getObjectByName("WholeModel").visible){
+			scene.getObjectByName("WholeModel").visible = true;
+			// console.log(scene.getObjectByName("WholeModel").visible);
+			scene.remove(scene.getObjectByName("PeaceModel"));
+			// empty(bracket);
+			empty(bracketfaces);
+		}
 }

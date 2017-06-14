@@ -13,27 +13,40 @@ slide.onclick = function(event){
 let saveSVG = document.getElementById("saveSVG");
 saveSVG.onclick = offset.saveSVG();
 */
-let threeD_model  = {
+let model  = {
 	offset : 0.5,
-	gg:100
+	defaultScale:200,
+	wholeModel :function(){
+		threejsView.showWholeModel();
+	}
 };
-let twoD_model  = {
+let svg  = {
 	offset : 5,
-	ggkk:false,
-	scale: 1,
+	fix:false,
+	scale :1,
+	//yyhh:1,
+	// get scale(){return svg.yygg;},
+	// set scale(value){svg.yygg=value;},
+	青綠疊兩暈:function(){
+		offset.autoDraw();
+	},
+	gui:undefined
 };
 window.onload =  function(){
 	// right gui - 3D
-	let threeD_gui = new dat.GUI();
-	let controller = threeD_gui.add( threeD_model, 'offset', 0.1,5 );
+	let modelGUI = new dat.GUI();
+	let controller = modelGUI.add( model, 'offset', 0.1,5 );
 	controller.onFinishChange(function(value) {
 		offset.realtimeRending(value);
 		});
-	threeD_gui.add( threeD_model, 'gg', 1,5 );
+	modelGUI.add( model, 'defaultScale', 200,200 );		
+	modelGUI.add( model, 'wholeModel' );
+
 
 	// left gui - 2D
-	let twoD_gui = new dat.GUI({autoPlace:false});
-	let scaleController = twoD_gui.add( twoD_model, 'scale', 1, 1000 );
+	let svgGUI = new dat.GUI({autoPlace:false});
+	svg.gui = svgGUI;
+	let scaleController = svgGUI.add( svg, 'scale', 1, 1000 );
 	scaleController.onFinishChange(function(value){
 		let center = offset.getCenter();
 		document.getElementById('group').setAttribute('transform',
@@ -41,14 +54,14 @@ window.onload =  function(){
 			+ 'scale(' + value + ') '  + 'translate(' + -center.x + ',' + -center.y +')' );
 		});
 
-	let ggkkController = twoD_gui.add( twoD_model, 'ggkk');
+	let ggkkController = svgGUI.add( svg, 'fix');
 	ggkkController.onFinishChange(function(v){
 		offset.autoDraw();
 		offset.w();
 		});
-	
+	svgGUI.add(svg,'青綠疊兩暈');
 
-	let style = twoD_gui.domElement.style;
+	let style = svgGUI.domElement.style;
 
 	Object.assign(style, {
 		position: 'absolute',
@@ -56,13 +69,16 @@ window.onload =  function(){
 		right: '50%'
 	});
 
-	document.getElementById('svg_view').appendChild(twoD_gui.domElement);
+	document.getElementById('svg_view').appendChild(svgGUI.domElement);
 }
 
 export function setSvgSize(scale, center){
-	twoD_model.scale = scale;
+	svg.scale = scale;
 	document.getElementById('group').setAttribute('transform',
 		 'translate(' + window.innerWidth / 4 + ',' + window.innerHeight / 2 +') '
 		+ 'scale(' + scale + ') '  + 'translate(' + -center.x + ',' + -center.y +')' );
+	for (let slot of svg.gui.__controllers) {
+	  slot.updateDisplay();
+	}
 }
 

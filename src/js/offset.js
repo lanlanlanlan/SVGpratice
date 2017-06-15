@@ -1,9 +1,11 @@
 import * as d3 from 'd3';
 import math from './libs/math.min.js';
 import * as main from '../main.js';
+import * as blob from './libs/blob.js';
 const colorMap = require('../json/colorHex.json'); 
-const bigMap = require('../json/level3_blue_green.json');
-//bigMap['三暈']['青緣綠地'].offsetColor[i]; // 大青
+const styleMap = require('../json/superimposedStyle.json');
+
+//styleMap['三暈']['青緣綠地'].offsetColor[i]; // 大青
 //逆時針內縮 順時針放大
 var data = [
 	[{
@@ -50,7 +52,7 @@ _svg.append('path')
 
 export function saveSVG() {
 	//get svg element.
-	var svg = document.getElementById("svg");
+	var svg = document.getElementById("svgCavas");
 
 	//get svg source.
 	var serializer = new XMLSerializer();
@@ -70,12 +72,24 @@ export function saveSVG() {
 	//convert svg source to URI data scheme.
 	var url = "data:application/octet-stream;charset=utf-8," + encodeURIComponent(source);
 
-	//set url value to a element's href attribute.
-	var link = document.getElementById("link");
-	link.href = url;
-	link.download = 'save.svg';
-	//you can download svg file by right click menu.
+	//you can download svg file
+	let html = d3.select('#svgCavas').node().parentNode.innerHTML;
+ 	let blob = new Blob([html], {type: "image/svg+xml"});
+ 	
+   
+    	let saveData = (function () {
+		let a = document.createElement("a");
+		document.body.appendChild(a);
+		a.style = "display: none";
+		return function (data, fileName) {
+			a.href = url;
+			a.download = fileName;
+			a.click();
+			window.URL.revokeObjectURL(url);
+			};
+		}());
 
+	saveData(blob, "superimposed halo.svg");
 }
 
 
@@ -315,7 +329,7 @@ export function setData(svgVertices) {
 	data.push(arr);
 	setBounding();
 	setCenter();
-	console.log(data);
+	// console.log(data);
 	
 	updateData();
 	let scale =  getDefaultScale();
@@ -345,7 +359,7 @@ function getDefaultScale(){
 ////////////////
 ////////////////
 ////////////////
-function updateData_test(){
+function updateData_test(superimposedStyle){
 
 	
 	// _svg.selectAll("*").remove();
@@ -357,17 +371,18 @@ function updateData_test(){
 	// 		.attr({
 	// 			'd': line(data[i]),
 	// 			'y': 0,
-	// 			'stroke': colorMap[level3_blue_green.strokeColor[i]],
-	// 			'stroke-width': level3_blue_green.offsetStroke[i]+'px',
+	// 			'stroke': colorMap[superimposedStyle.strokeColor[i]],
+	// 			'stroke-width': superimposedStyle.offsetStroke[i]+'px',
 	// 			'vector-effect':'non-scaling-stroke',
-	// 			'fill': colorMap[level3_blue_green.offsetColor[i]] 
+	// 			'fill': colorMap[superimposedStyle.offsetColor[i]] 
 	// 		});
 	// }
 	_svg.selectAll("*").remove();
 	let g = _svg.append('g').attr({
 		'id':'group'
 	});
-	let style = bigMap['兩暈']['青緣綠地'];
+	// let style = styleMap['兩暈']['青緣綠地'];
+	let style = styleMap[ superimposedStyle[0] ][ superimposedStyle[1] ];
 	for (let i = 0; i < data.length; i++) {		
 		g.append('path')
 			.attr({
@@ -380,14 +395,15 @@ function updateData_test(){
 			});
 	}
 }
-function realtimeRending_test(d) {
+
+function realtimeRending_test(d, superimposedStyle) {
 	let total = (bounding.width<bounding.height)?bounding.width:bounding.height;
 	//polygon_area();
 	//offset = d*total;
 	offset = d;
 	data.push([]);
 	createOffsetPoint();
-	updateData_test();
+	updateData_test(superimposedStyle);
 }
 //return math.intersect([p0.x, p0.y], [p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]);
 function restructureNode(data){
@@ -451,19 +467,19 @@ function pointAtLineFunction(p0, p1, p2 , p3 , point){
 function distance(p1, p2){
 	return math.sqrt(math.pow(p2.x-p1.x , 2) + math.pow(p2.y-p1.y , 2) );
 }
-export function autoDraw(){
-	
-	for(let i = 0; i < level3_blue_green.offsetDistance.length ; i ++){
-		realtimeRending_test(level3_blue_green.offsetDistance[i]);
+export function autoDraw(superimposedStyle){
+	let style = styleMap[ superimposedStyle[0] ][ superimposedStyle[1] ];
+	for(let i = 0; i < style.offsetDistance.length ; i ++){
+		realtimeRending_test(style.offsetDistance[i] , superimposedStyle);
 	}
 }
-export function w(){
+export function w(superimposedStyle){
 	
 	for(let i of data){
 		restructureNode(i);
 		//console.log(i.length);
 	}
-	updateData_test();
+	updateData_test(superimposedStyle);
 }
 // json
 let level3_blue_green = {offsetDistance :[0.5, 

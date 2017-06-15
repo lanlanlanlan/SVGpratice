@@ -27,11 +27,23 @@ let svg  = {
 	//yyhh:1,
 	// get scale(){return svg.yygg;},
 	// set scale(value){svg.yygg=value;},
+
 	青綠疊兩暈:function(){
-		offset.autoDraw();
+		let superimposedStyle = ['兩暈', '青緣綠地'];
+		offset.autoDraw(superimposedStyle);
+		offset.w(superimposedStyle);
+	},
+	碾玉青緣綠地:function(){
+		let superimposedStyle = ['碾玉','青緣綠地'];
+		offset.autoDraw(superimposedStyle);
+		offset.w(superimposedStyle);
+	},
+	saveSVG:function(){
+		offset.saveSVG();
 	},
 	gui:undefined
 };
+
 window.onload =  function(){
 	// right gui - 3D
 	let modelGUI = new dat.GUI();
@@ -57,9 +69,11 @@ window.onload =  function(){
 	let ggkkController = svgGUI.add( svg, 'fix');
 	ggkkController.onFinishChange(function(v){
 		offset.autoDraw();
-		offset.w();
+		// offset.w();
 		});
 	svgGUI.add(svg,'青綠疊兩暈');
+	svgGUI.add(svg,'碾玉青緣綠地');
+	svgGUI.add(svg,'saveSVG');
 
 	let style = svgGUI.domElement.style;
 

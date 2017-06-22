@@ -248,12 +248,12 @@ function setRaycast(event) {
 		setSvgVerticesOrder(selectedfaces, svgVertices, verticesRelation);
 		//console.log("selectedfaces = ");console.log( selectedfaces);
 
-		offset.setData(svgVertices);
+		// offset.setData(svgVertices);
 		if(svgSeletedfaces == null)
 			svgSeletedfaces=svgVertices;
 		if(event.shiftKey)
 			combineSelectedfaces(svgVertices);
-		//offset.setData(svgSeletedfaces);
+		offset.setData(svgSeletedfaces);
 	}
 }
 function faceWithSamePoint(connect, selectedfaces ){
@@ -707,25 +707,58 @@ export function showWholeModel(){
 function combineSelectedfaces(svgVertices){
 	svgSeletedfaces = restructureSvgSelectfaces(svgSeletedfaces);
 	svgVertices = restructureSvgSelectfaces(svgVertices);
-	let startIndex = null, endIndex = null;
+	// if(ClockwiseDirection(svgSeletedfaces,1 , svgSeletedfaces.length) >0 )
+	// 	reverseOrder(svgSeletedfaces);
+	// if(ClockwiseDirection(svgVertices,1 , svgVertices.length) >0 )
+	// 	reverseOrder(svgVertices);
+	let startIndex = null, endIndex = null , startPointOfSvgVertices = null;
 	for(let i of svgSeletedfaces){
 		for(let j of svgVertices){
-			if(i.originPoint.equals(j.originPoint)&&startIndex == null)
+			if(i.originPoint.equals(j.originPoint)&&startIndex == null){
 				startIndex = getIndexOfsvgVertices(svgSeletedfaces,i.originPoint);
+				startPointOfSvgVertices = j;
+			}
 			else if(i.originPoint.equals(j.originPoint) && svgSeletedfaces[startIndex].order < i.order)
 				endIndex = getIndexOfsvgVertices(svgSeletedfaces,i.originPoint);
 			else if (i.originPoint.equals(j.originPoint)){
 				let temp = startIndex;
 				startIndex = getIndexOfsvgVertices(svgSeletedfaces,i.originPoint);
 				endIndex = temp;
+				startPointOfSvgVertices = j;
 			}
 		}
 	}
 	if(endIndex==null || startIndex == null)
 		console.log("cant combine!");
-	if(svgSeletedfaces[endIndex].order == svgSeletedfaces.length)
+	// if(svgSeletedfaces[endIndex].order == svgSeletedfaces.length)
+	// 	RshiftOrder(svgSeletedfaces);
+	let startPoint = svgSeletedfaces[startIndex];
+	let endPoint = svgSeletedfaces[endIndex];
+	while(svgSeletedfaces[endIndex].order != svgSeletedfaces.length){
 		RshiftOrder(svgSeletedfaces);
+		let t = getSvgVerticeByOrder(svgSeletedfaces, startPoint.order);
+		startIndex = getIndexOfsvgVertices(svgSeletedfaces, t.originPoint);
+		let t2 = getSvgVerticeByOrder(svgSeletedfaces, endPoint.order);
+		endIndex = getIndexOfsvgVertices(svgSeletedfaces, t2.originPoint);
 
+	}
+
+	while(startPointOfSvgVertices.order != 1){
+		RshiftOrder(svgVertices);
+
+	}
+
+	let vectorV = svgSeletedfaces[startIndex].svgPoint.clone().sub(startPointOfSvgVertices.svgPoint);
+	for(let i of svgVertices){
+		if(!i.originPoint.equals(svgSeletedfaces[startIndex].originPoint) &&  !i.originPoint.equals(svgSeletedfaces[endIndex].originPoint)){
+			i.order += (svgSeletedfaces[startIndex].order-1);
+			i.svgPoint.add(vectorV);
+			svgSeletedfaces.push(i);
+		}
+	}
+
+	
+	svgSeletedfaces[endIndex].order+= svgVertices.length-2;
 	
 }
 

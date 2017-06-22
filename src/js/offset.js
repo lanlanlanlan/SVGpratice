@@ -185,7 +185,7 @@ function createOffsetPoint() {
 	}
 	//
 	// console.log("targetData = " + targetData);
-	//restructureNode(data[targetData]);
+	// restructureNode(data[targetData]);
 }
 
 function setBounding(){
@@ -329,7 +329,7 @@ export function setData(svgVertices) {
 	data.push(arr);
 	setBounding();
 	setCenter();
-	// console.log(data);
+	console.log(data);
 	
 	updateData();
 	let scale =  getDefaultScale();

@@ -65,7 +65,7 @@
             "綠華",
             "粉暈",
             "青華",
-            "青綠",
+            "三青",
             "二青",
             "大青",
             "以墨壓深" ],
@@ -81,7 +81,7 @@
         "none"] }  },
 
   "三暈":{
-    "青綠青":{
+    "青綠緣青地":{
         "offsetDistance" :[0.3334, 
             0.3334, 
             0.3334, 
@@ -125,7 +125,7 @@
         "none",
         "none"] },
 
-    "綠青綠":{
+    "綠青緣綠地":{
         "offsetDistance" :[0.3334, 
             0.3334, 
             0.3334, 
@@ -169,7 +169,7 @@
         "none",
         "none"] },
 
-    "綠紅綠":{
+    "綠紅緣綠地":{
         "offsetDistance" :[0.3334, 
             0.3334, 
             0.3334, 
@@ -213,7 +213,7 @@
         "none",
         "none"] },
 
-    "青紅青":{
+    "青紅緣青地":{
         "offsetDistance" :[0.3334, 
             0.3334, 
             0.3334, 
@@ -464,6 +464,90 @@
         "赭筆描道",
         "none",
         "none",
-        "赭筆描道"] } }
+        "赭筆描道"] } },
 
+    "解綠":{
+      "青緣道":{
+        "offsetDistance" :[0.625, 
+            0.625, 
+            0.625 ],
+        "offsetStroke" :[0,
+            0,
+            0,
+            0],
+        "offsetColor" :[  
+             "大青",
+            "青華",
+            "粉暈",
+            "土朱"],
+        "strokeColor":[
+        "none",
+        "none",
+        "none",
+        "none"] },
+
+    "綠緣道":{
+        "offsetDistance" :[0.625, 
+            0.625, 
+            0.625],
+        "offsetStroke" :[0,
+            0,
+            0,
+            0],
+        "offsetColor" :[  
+            "大綠",
+            "綠華",
+            "粉暈",
+            "土朱"],
+        "strokeColor":[
+        "none",
+        "none",
+        "none",
+        "none"] }},
+
+  "丹粉":{
+      "身內刷朱":{
+        "offsetDistance" :[1.875],
+        "offsetStroke" :[0],
+        "offsetColor" :[  
+            "粉暈",
+            "土朱"],
+        "strokeColor":[
+        "none",
+        "none"] },
+
+    "身內刷丹":{
+        "offsetDistance" :[1.875],
+        "offsetStroke" :[0],
+        "offsetColor" :[  
+            "粉暈",
+            "黃丹"],
+        "strokeColor":[
+        "none",
+        "none"] }},
+
+    "黃土":{
+      "身內刷土黃":{
+        "offsetDistance" :[1.875],
+        "offsetStroke" :[
+            0, 
+            1],
+        "offsetColor" :[  
+            "粉暈",
+            "土黃"],
+        "strokeColor":[
+        "none",
+        "粉暈"] },
+
+    "解墨緣道":{
+        "offsetDistance" :[1.875],
+        "offsetStroke" :[
+            0,
+            1],
+        "offsetColor" :[  
+            "墨",
+            "土黃"],
+        "strokeColor":[
+        "none",
+        "粉暈"] }}
 }

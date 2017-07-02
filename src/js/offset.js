@@ -92,7 +92,6 @@ export function saveSVG() {
 	saveData(blob, "superimposed halo.svg");
 }
 
-
 function computeNewNode(p1, p2, p3) {
 
 	let vectorData = [{
@@ -119,7 +118,14 @@ function computeNewNode(p1, p2, p3) {
 		return lineData;
 		
 	}
-
+	else if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) + 1) <= 0.00000001){
+		linePx = p2.x - computeUnitVector(vectorData[0]).x * offset;
+		linePy = p2.y - computeUnitVector(vectorData[0]).y * offset;
+		lineData.push( linePx);
+		lineData.push( linePy);
+		return lineData;
+		
+	}
 	//first point of line1
 	linePx = p1.x + computeUnitVector(vectorData[0]).x * offset;
 	linePy = p1.y + computeUnitVector(vectorData[0]).y * offset;
@@ -153,39 +159,98 @@ function computeNewNode(p1, p2, p3) {
 
 }
 
-function createOffsetPoint() {
+function createOffsetPoint(superimposedStyle) {
+
 	let sourceData = data.length - 2,
 		targetData = data.length - 1;
 		
+	//restructureNode(data[targetData]);
+	let _data = data[sourceData],smallthanoffset =0, j,q,k;
+	let _temData =[],crossP;
+	for(let i = 0 ; i< _data.length ; i++){
+		if(i== 0)
+			q = _data.length-1 ;
+		else
+			q = i-1;
+		j = (i+1)%_data.length;
+		k = (j+1)%_data.length; 
 
-	if (data[sourceData].length < 2)
-		console.log("node <= 2");
-	
-	else {
+		_temData.push(_data[i]);
+		
+		if(distance(_data[i], _data[j])<  offset ){
+			crossP = math.intersect([_data[q].x,_data[q].y],[_data[i].x,_data[i].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
+			// console.log(math.intersect([_data[q].x,_data[q].y],[_data[i].x,_data[i].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]));
+			if(pointAtLineFunctionOR(_data[q],_data[i],_data[j],_data[k],crossP) ){
+				_temData.pop();
+				_temData.push({x:crossP[0],y:crossP[1]});
+				smallthanoffset++;
+			}
+			
+		}
+		
+	}
+	console.log(smallthanoffset);
+	if(superimposedStyle[0] =="解綠" || superimposedStyle[0] =="丹粉" || superimposedStyle[0] =="黃土")
+		smallthanoffset = 0;
+	// if(offset >= 0.625)
+	// 	smallthanoffset = 0;
+	if(smallthanoffset > 0){
 
+		if (data[sourceData].length < 2)
+			console.log("node <= 2");
+		
+		else {
+
+			data[targetData].push({
+				x: computeNewNode(_temData[data[sourceData].length - 1], _temData[0], _temData[1])[0],
+				y: computeNewNode(_temData[data[sourceData].length - 1], _temData[0], _temData[1])[1]
+			});
+			for (let r = 0; r < data[sourceData].length - 1; r++) {
+				if ((r + 2) > data[sourceData].length - 1) {
+					data[targetData].push({
+						x: computeNewNode(_temData[r], _temData[r + 1], _temData[0])[0],
+						y: computeNewNode(_temData[r], _temData[r + 1], _temData[0])[1]
+					})
+				} else {
+					let p = computeNewNode(_temData[r], _temData[r + 1], _temData[r + 2]);
+					// if (p == null) continue;
+					data[targetData].push({
+						x: p[0],
+						y: p[1]
+					})
+				}
+
+			}
+
+		}
+	}
+	else{
 		data[targetData].push({
 			x: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[0],
 			y: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[1]
 		});
-		for (let i = 0; i < data[sourceData].length - 1; i++) {
-			if ((i + 2) > data[sourceData].length - 1) {
+		for (let r = 0; r < (data[sourceData].length - 1); r++) {
+			if ((r + 2) > data[sourceData].length - 1) {
 				data[targetData].push({
-					x: computeNewNode(data[sourceData][i], data[sourceData][i + 1], data[sourceData][0])[0],
-					y: computeNewNode(data[sourceData][i], data[sourceData][i + 1], data[sourceData][0])[1]
+					x: computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][0])[0],
+					y: computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][0])[1]
 				})
 			} else {
+				let p = computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][r + 2]);
 				data[targetData].push({
-					x: computeNewNode(data[sourceData][i], data[sourceData][i + 1], data[sourceData][i + 2])[0],
-					y: computeNewNode(data[sourceData][i], data[sourceData][i + 1], data[sourceData][i + 2])[1]
+					x: p[0],
+					y: p[1]
 				})
 			}
 
 		}
 
+	
+
 	}
-	//
-	// console.log("targetData = " + targetData);
-	// restructureNode(data[targetData]);
+	restructureNode(data[targetData]);
+	console.log(data);
+	
 }
 
 function setBounding(){
@@ -313,17 +378,16 @@ export function setData(svgVertices) {
 			if (svgVertices[j].order == i + 1) {
 
 				arr.push({
-					x: svgVertices[j].svgPoint.x *200   ,
-					y: svgVertices[j].svgPoint.y  *200 
-					
+					// x: svgVertices[j].svgPoint.x *200   ,
+					// y: svgVertices[j].svgPoint.y  *200 
+					x: svgVertices[j].svgPoint.x *100   ,
+					y: svgVertices[j].svgPoint.y  *100 
 				})
 			}
 		}
 	}
 
-	/*data[0] = arr;
-	console.log(data);
-	updateData();*/
+	
 	while(data.length != 0)
 		data.pop();
 	data.push(arr);
@@ -362,21 +426,7 @@ function getDefaultScale(){
 function updateData_test(superimposedStyle){
 
 	
-	// _svg.selectAll("*").remove();
-	// let g = _svg.append('g').attr({
-	// 	'id':'group'
-	// });
-	// for (let i = 0; i < data.length; i++) {		
-	// 	g.append('path')
-	// 		.attr({
-	// 			'd': line(data[i]),
-	// 			'y': 0,
-	// 			'stroke': colorMap[superimposedStyle.strokeColor[i]],
-	// 			'stroke-width': superimposedStyle.offsetStroke[i]+'px',
-	// 			'vector-effect':'non-scaling-stroke',
-	// 			'fill': colorMap[superimposedStyle.offsetColor[i]] 
-	// 		});
-	// }
+	
 	_svg.selectAll("*").remove();
 	let g = _svg.append('g').attr({
 		'id':'group'
@@ -399,10 +449,11 @@ function updateData_test(superimposedStyle){
 function realtimeRending_test(d, superimposedStyle) {
 	let total = (bounding.width<bounding.height)?bounding.width:bounding.height;
 	//polygon_area();
-	//offset = d*total;
-	offset = d;
+	offset = d*total/15;
+	 offset = d* 0.9090916315714518;//從令拱換算
+	 // offset = d;
 	data.push([]);
-	createOffsetPoint();
+	createOffsetPoint(superimposedStyle);
 	updateData_test(superimposedStyle);
 }
 //return math.intersect([p0.x, p0.y], [p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]);
@@ -464,6 +515,23 @@ function pointAtLineFunction(p0, p1, p2 , p3 , point){
 	let b2 = abs(p2.x-p3.x)>abs(p2.y-p3.y)?"x":"y";
 	return inrange(p0[b1],p1[b1],crossP[b1])&&inrange(p2[b2],p3[b2],crossP[b2]);
 }
+function pointAtLineFunctionOR(p0, p1, p2 , p3 , point){
+	//check point at line by distance
+	let crossP = {x:point[0] , y:point[1]};
+	// let distanceP0P1 = distance(p0, p1);
+	// let distanceP2P3 = distance(p2, p3);	
+	// if(math.abs(distanceP0P1 - distance(p0,crossP) - distance(p1, crossP)) <= 0.000001){
+	// 	if(math.abs(distanceP2P3 - distance(p2,crossP) - distance(p3, crossP))<=0.000001){
+	// 		return true;
+	// 	}
+	// }
+
+	//check point at line by p0 p1 p2 p3 range
+	let {abs}=math;
+	let b1 = abs(p0.x-p1.x)>abs(p0.y-p1.y)?"x":"y";
+	let b2 = abs(p2.x-p3.x)>abs(p2.y-p3.y)?"x":"y";
+	return inrange(p0[b1],p1[b1],crossP[b1])||inrange(p2[b2],p3[b2],crossP[b2]);
+}
 function distance(p1, p2){
 	return math.sqrt(math.pow(p2.x-p1.x , 2) + math.pow(p2.y-p1.y , 2) );
 }
@@ -481,46 +549,7 @@ export function w(superimposedStyle){
 	}
 	updateData_test(superimposedStyle);
 }
-// json
-let level3_blue_green = {offsetDistance :[0.5, 
-						0.5, 
-						0.5, 
-						0.5, 
-						0.4167,
-						0.4167,
-						0.4167,
-						0.4167],
-
-				offsetStroke :[1,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0,
-						0],
-				offsetColor :[ 	
-						 "大青",
-						"二青",
-						"青華",
-						"粉暈",
-						"綠華",
-						"三綠",
-						"二綠",
-						"大綠",
-						"草汁壓深"
-					],
-				strokeColor:[
-				'深朱壓心',
-				'none',
-				'none',
-				'none',
-				'none',
-				'none',
-				'none',
-				'none',
-				'none'
-				]
-
-			}
+export function clearSuperimposed(){
+	while(data.length != 1)
+		data.pop();
+}

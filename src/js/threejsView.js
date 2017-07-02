@@ -169,7 +169,7 @@ export function animate() {
 function SetControls() {
 	controls = new THREE.OrbitControls(camera, renderer.domElement);
 	controls.minDistance = 2;
-	controls.maxDistance = 50;
+	controls.maxDistance = 500;
 	scene.add(new THREE.AxisHelper(20));
 }
 
@@ -241,7 +241,7 @@ function setRaycast(event) {
 		selectedfaces = dfs(selectedfaces,intersects[0].object);
 		
 		for(let i in selectedfaces){
-			selectedfaces[i].material.color.set(Math.random() * 0xffffff);
+			selectedfaces[i].material.color.set(color);
 			createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
 		}
 
@@ -249,10 +249,16 @@ function setRaycast(event) {
 		//console.log("selectedfaces = ");console.log( selectedfaces);
 
 		// offset.setData(svgVertices);
+		
+
+		if(event.shiftKey && svgSeletedfaces != null)
+			combineSelectedfaces(svgVertices);
+		else
+			svgSeletedfaces=svgVertices;
+
 		if(svgSeletedfaces == null)
 			svgSeletedfaces=svgVertices;
-		if(event.shiftKey)
-			combineSelectedfaces(svgVertices);
+		
 		offset.setData(svgSeletedfaces);
 	}
 }
@@ -696,21 +702,35 @@ function rotateVertices(faces, vertice) {
 
 export function showWholeModel(){
 	if(!scene.getObjectByName("WholeModel").visible){
-			scene.getObjectByName("WholeModel").visible = true;
-			scene.remove(scene.getObjectByName("PeaceModel"));
-			// empty(bracket);
-			empty(bracketfaces);
-			svgSeletedfaces =null;
-		}
+		scene.getObjectByName("WholeModel").visible = true;
+		scene.remove(scene.getObjectByName("PeaceModel"));
+		// empty(bracket);
+		empty(bracketfaces);
+		svgSeletedfaces =null;
+	}
+}
+export function viewFitModel(){
+	if(scene.getObjectByName("WholeModel").visible){
+		scene.getObjectByName("WholeModel").children[0].geometry.computeBoundingBox();
+		let lookAtPoint = scene.getObjectByName("WholeModel").children[0].geometry.boundingBox.center();
+		camera.lookAt( lookAtPoint );
+		camera.zoom = 1; 
+	}
+	else{
+		scene.getObjectByName("PeaceModel").children[0].geometry.computeBoundingBox();
+		let lookAtPoint = scene.getObjectByName("PeaceModel").children[0].geometry.boundingBox.center();
+		camera.lookAt( lookAtPoint );
+		camera.zoom = 30; 
+	}
+	camera.updateProjectionMatrix ()
+		controls.target = lookAtPoint;
+		controls.object.updateProjectionMatrix ()
 }
 
 function combineSelectedfaces(svgVertices){
 	svgSeletedfaces = restructureSvgSelectfaces(svgSeletedfaces);
 	svgVertices = restructureSvgSelectfaces(svgVertices);
-	// if(ClockwiseDirection(svgSeletedfaces,1 , svgSeletedfaces.length) >0 )
-	// 	reverseOrder(svgSeletedfaces);
-	// if(ClockwiseDirection(svgVertices,1 , svgVertices.length) >0 )
-	// 	reverseOrder(svgVertices);
+	
 	let startIndex = null, endIndex = null , startPointOfSvgVertices = null;
 	for(let i of svgSeletedfaces){
 		for(let j of svgVertices){
@@ -730,17 +750,16 @@ function combineSelectedfaces(svgVertices){
 	}
 	if(endIndex==null || startIndex == null)
 		console.log("cant combine!");
-	// if(svgSeletedfaces[endIndex].order == svgSeletedfaces.length)
-	// 	RshiftOrder(svgSeletedfaces);
+	
 	let startPoint = svgSeletedfaces[startIndex];
 	let endPoint = svgSeletedfaces[endIndex];
 	while(svgSeletedfaces[endIndex].order != svgSeletedfaces.length){
 		RshiftOrder(svgSeletedfaces);
-		let t = getSvgVerticeByOrder(svgSeletedfaces, startPoint.order);
-		startIndex = getIndexOfsvgVertices(svgSeletedfaces, t.originPoint);
-		let t2 = getSvgVerticeByOrder(svgSeletedfaces, endPoint.order);
-		endIndex = getIndexOfsvgVertices(svgSeletedfaces, t2.originPoint);
-
+		startPoint = getSvgVerticeByOrder(svgSeletedfaces, startPoint.order);
+		startIndex = getIndexOfsvgVertices(svgSeletedfaces, startPoint.originPoint);
+		endPoint = getSvgVerticeByOrder(svgSeletedfaces, endPoint.order);
+		endIndex = getIndexOfsvgVertices(svgSeletedfaces, endPoint.originPoint);
+		
 	}
 
 	while(startPointOfSvgVertices.order != 1){
@@ -798,3 +817,4 @@ function threePointsAtOneLine(p1,p2,p3){
 		return true;
 	return false;
 }
+

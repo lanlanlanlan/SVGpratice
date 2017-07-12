@@ -78,16 +78,21 @@ export function init() {
 	//#pragma:model
 	loader = new THREE.OBJLoader(manager);
 	loader.load('./models/32_deleteLine.obj', function(object) {
+	// loader.load('./models/aaaa.obj', function(object) {
 		for(let i in object.children){
 			object.children[i].geometry = new THREE.Geometry().fromBufferGeometry(object.children[i].geometry);
 			//make sure smooth
 			object.children[i].geometry.computeVertexNormals();
 		}
 		
-
+		let _material = new THREE.MeshPhongMaterial({
+			 color: 0x614641
+		});
 		object.traverse(function(child) {
 			if (child instanceof THREE.Mesh) {
+				
 				child.material.map = texture;
+				child.material = _material;
 			}
 		});
 		
@@ -113,6 +118,45 @@ export function init() {
 	raycaster = new THREE.Raycaster();
 	// document.addEventListener('dblclick', setRaycast, false);
 	document.getElementById('threejs_view').addEventListener('dblclick', setRaycast, false);
+	 initTJstyle()
+}
+function initTJstyle(){
+	scene.fog = new THREE.Fog( 0x72645b, 1, 0.5 );
+	renderer.setClearColor( scene.fog.color, 1 );
+	let plane = new THREE.Mesh( new THREE.PlaneGeometry( 500, 500 ), new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } ) );
+				plane.rotation.x = -Math.PI/2;
+				plane.position.y = -0.5;
+				scene.add( plane );
+
+				plane.receiveShadow = true;
+	// addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
+	addShadowedLight( 0.5, 1, -1, 0xffaa00, 1 );
+	function addShadowedLight( x, y, z, color, intensity ) {
+
+				let directionalLight = new THREE.DirectionalLight( color, intensity );
+				directionalLight.position.set( x, y, z )
+				scene.add( directionalLight );
+
+				directionalLight.castShadow = true;
+				// directionalLight.shadowCameraVisible = true;
+
+				let d = 1;
+				directionalLight.shadowCameraLeft = -d;
+				directionalLight.shadowCameraRight = d;
+				directionalLight.shadowCameraTop = d;
+				directionalLight.shadowCameraBottom = -d;
+
+				directionalLight.shadowCameraNear = 1;
+				directionalLight.shadowCameraFar = 4;
+
+				directionalLight.shadowMapWidth = 1024;
+				directionalLight.shadowMapHeight = 1024;
+
+				directionalLight.shadowBias = -0.005;
+				directionalLight.shadowDarkness = 0.15;
+
+			}
+
 }
 function createBracketfaces(object){
 	
@@ -122,7 +166,7 @@ function createBracketfaces(object){
 	for (let i in _geometry.faces) {
 
 		let _mesh = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshPhongMaterial({
-			color: 0xf0f0f0
+			/*color: 0xf0f0f0*/ color: 0x614641, specular: 0x111111, shininess: 200
 		}));
 
 		_mesh.geometry.faces.push(_geometry.faces[i]);
@@ -241,7 +285,7 @@ function setRaycast(event) {
 		selectedfaces = dfs(selectedfaces,intersects[0].object);
 		
 		for(let i in selectedfaces){
-			selectedfaces[i].material.color.set(color);
+			selectedfaces[i].material.color.set( Math.random() * 0xffffff);
 			createSvgVertices(selectedfaces[i].geometry.clone(), svgVertices);
 		}
 
@@ -740,6 +784,7 @@ function combineSelectedfaces(svgVertices){
 			}
 			else if(i.originPoint.equals(j.originPoint) && svgSeletedfaces[startIndex].order < i.order)
 				endIndex = getIndexOfsvgVertices(svgSeletedfaces,i.originPoint);
+				
 			else if (i.originPoint.equals(j.originPoint)){
 				let temp = startIndex;
 				startIndex = getIndexOfsvgVertices(svgSeletedfaces,i.originPoint);
@@ -748,37 +793,43 @@ function combineSelectedfaces(svgVertices){
 			}
 		}
 	}
-	if(endIndex==null || startIndex == null)
+	if(endIndex==null || startIndex == null){
 		console.log("cant combine!");
+		return;
+	}
 	
 	let startPoint = svgSeletedfaces[startIndex];
 	let endPoint = svgSeletedfaces[endIndex];
-	while(svgSeletedfaces[endIndex].order != svgSeletedfaces.length){
+
+	while(endPoint.order != svgSeletedfaces.length ){
 		RshiftOrder(svgSeletedfaces);
 		startPoint = getSvgVerticeByOrder(svgSeletedfaces, startPoint.order);
 		startIndex = getIndexOfsvgVertices(svgSeletedfaces, startPoint.originPoint);
 		endPoint = getSvgVerticeByOrder(svgSeletedfaces, endPoint.order);
 		endIndex = getIndexOfsvgVertices(svgSeletedfaces, endPoint.originPoint);
-		
 	}
 
-	while(startPointOfSvgVertices.order != 1){
+	while(startPointOfSvgVertices.order != 1)
 		RshiftOrder(svgVertices);
-
-	}
+	
 
 	let vectorV = svgSeletedfaces[startIndex].svgPoint.clone().sub(startPointOfSvgVertices.svgPoint);
+	
 	for(let i of svgVertices){
 		if(!i.originPoint.equals(svgSeletedfaces[startIndex].originPoint) &&  !i.originPoint.equals(svgSeletedfaces[endIndex].originPoint)){
-			i.order += (svgSeletedfaces[startIndex].order-1);
+			if(startPoint.order!=1)
+				i.order += (svgSeletedfaces[startIndex].order-1);
+			else{
+				let _order = i.order + svgSeletedfaces[endIndex].order;
+				i.order = (_order >2 )? _order-2 : _order;
+			}
 			i.svgPoint.add(vectorV);
 			svgSeletedfaces.push(i);
 		}
 	}
+	if(startPoint.order!=1)
+		svgSeletedfaces[endIndex].order+= svgVertices.length-2;
 
-	
-	svgSeletedfaces[endIndex].order+= svgVertices.length-2;
-	
 }
 
 function restructureSvgSelectfaces(svgVertices){

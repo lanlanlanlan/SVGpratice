@@ -189,11 +189,10 @@ function createOffsetPoint(superimposedStyle) {
 		}
 		
 	}
-	console.log(smallthanoffset);
+	// console.log(smallthanoffset);
 	if(superimposedStyle[0] =="解綠" || superimposedStyle[0] =="丹粉" || superimposedStyle[0] =="黃土")
 		smallthanoffset = 0;
-	// if(offset >= 0.625)
-	// 	smallthanoffset = 0;
+
 	if(smallthanoffset > 0){
 
 		if (data[sourceData].length < 2)
@@ -219,7 +218,6 @@ function createOffsetPoint(superimposedStyle) {
 						y: p[1]
 					})
 				}
-
 			}
 
 		}
@@ -229,6 +227,7 @@ function createOffsetPoint(superimposedStyle) {
 			x: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[0],
 			y: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[1]
 		});
+		
 		for (let r = 0; r < (data[sourceData].length - 1); r++) {
 			if ((r + 2) > data[sourceData].length - 1) {
 				data[targetData].push({
@@ -242,7 +241,6 @@ function createOffsetPoint(superimposedStyle) {
 					y: p[1]
 				})
 			}
-
 		}
 
 	
@@ -250,8 +248,73 @@ function createOffsetPoint(superimposedStyle) {
 	}
 	restructureNode(data[targetData]);
 	console.log(data);
+	let c=0;
+	_data = data[targetData];
+	for(let n = 0 ; n <  _data.length ; n++){
+		if(pointOverlapLastSharp(_data[n], offset ,data[sourceData])){
+			c++;
+			q = (n -1)<0 ? (_data.length-1) : (n-1);
+			j = (n+1) % _data.length;
+			k = (j+1) % _data.length;
+			crossP = math.intersect([_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
+			if(crossP!= null){
+				if(pointAtLineFunctionOR(_data[q],_data[n],_data[j],_data[k],crossP) ){
+					// && pointOverlapLastSharp({x:crossP[0], y:crossP[1]}, offset ,data[sourceData])
+					let _c = {x:crossP[0], y:crossP[1]};
+					if(pointOverlapLastSharp(_c, offset ,data[sourceData])){
+						console.log("case3");
+						let m = (q-1)<0 ? (_data.length-1) : (q-1);
+						crossP = math.intersect([_data[m].x,_data[m].y],[_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y]);
+					
+					}
+					else
+						console.log("case1");
+					_data[n] = { x: crossP[0], y:crossP[1]};
+
+					
+				}
+				else if (!pointAtLineFunction(_data[q],_data[n],_data[j],_data[k],crossP)){
+					let m = (q-1)<0 ? (_data.length-1) : (q-1);
+					crossP = math.intersect([_data[m].x,_data[m].y],[_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y]);
+					if(crossP!= null){
+						_data[n] = { x: crossP[0], y:crossP[1]};
+					}	
+					console.log("case2");
+				}
+			}
+		
+		}
+	}
+	console.log(c);
+	
 	
 }
+function pointOverlapLastSharp(point, r ,lastData){
+	let A, B, C;
+	//point =X3,y3
+	//p1 = x1,y1;
+	//p2 =x2,y2
+	let p1,p2,delta;
+	for(let i = 0; i <lastData.length ; i++){
+		p1 = lastData[ i ];
+		p2 = lastData[ (i+1)%lastData.length ];
+		A = math.pow(( p2.x - p1.x), 2) + math.pow(( p2.y-p1.y), 2);
+		B = 2*( ( p2.x-p1.x) *( p1.x-point.x) + ( p2.y-p1.y) *( p1.y - point.y)) ;
+		C = math.pow(point.x, 2) + math.pow(point.y, 2) + math.pow(p1.x, 2)+ math.pow(p1.y, 2) 
+			- 2*( point.x*p1.x + point.y*p1.y) - math.pow(r, 2);
+		delta = math.pow(B, 2) - 4*A*C;
+		if(delta > 0.1){
+			let u1 = (-B+math.sqrt( delta)) / (2*A);
+			let u2 = (-B -math.sqrt( delta)) / (2*A);
+			if(u1<=1 && u1 >= 0 && u2<=1 && u2 >=0)
+				return true;
+
+		} 
+	}
+	return false;
+	
+}
+
 
 function setBounding(){
 	let max = {x : -Infinity  , y:-Infinity  };
@@ -516,17 +579,9 @@ function pointAtLineFunction(p0, p1, p2 , p3 , point){
 	return inrange(p0[b1],p1[b1],crossP[b1])&&inrange(p2[b2],p3[b2],crossP[b2]);
 }
 function pointAtLineFunctionOR(p0, p1, p2 , p3 , point){
-	//check point at line by distance
-	let crossP = {x:point[0] , y:point[1]};
-	// let distanceP0P1 = distance(p0, p1);
-	// let distanceP2P3 = distance(p2, p3);	
-	// if(math.abs(distanceP0P1 - distance(p0,crossP) - distance(p1, crossP)) <= 0.000001){
-	// 	if(math.abs(distanceP2P3 - distance(p2,crossP) - distance(p3, crossP))<=0.000001){
-	// 		return true;
-	// 	}
-	// }
 
-	//check point at line by p0 p1 p2 p3 range
+	let crossP = {x:point[0] , y:point[1]};
+	
 	let {abs}=math;
 	let b1 = abs(p0.x-p1.x)>abs(p0.y-p1.y)?"x":"y";
 	let b2 = abs(p2.x-p3.x)>abs(p2.y-p3.y)?"x":"y";

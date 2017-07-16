@@ -804,23 +804,20 @@ function combineSelectedfaces(svgVertices){
 	while(endPoint.order != svgSeletedfaces.length ){
 		RshiftOrder(svgSeletedfaces);
 		startPoint = getSvgVerticeByOrder(svgSeletedfaces, startPoint.order);
-		startIndex = getIndexOfsvgVertices(svgSeletedfaces, startPoint.originPoint);
 		endPoint = getSvgVerticeByOrder(svgSeletedfaces, endPoint.order);
-		endIndex = getIndexOfsvgVertices(svgSeletedfaces, endPoint.originPoint);
 	}
 
 	while(startPointOfSvgVertices.order != 1)
 		RshiftOrder(svgVertices);
 	
-
-	let vectorV = svgSeletedfaces[startIndex].svgPoint.clone().sub(startPointOfSvgVertices.svgPoint);
+	let vectorV = startPoint.svgPoint.clone().sub(startPointOfSvgVertices.svgPoint);
 	
 	for(let i of svgVertices){
-		if(!i.originPoint.equals(svgSeletedfaces[startIndex].originPoint) &&  !i.originPoint.equals(svgSeletedfaces[endIndex].originPoint)){
+		if(!i.originPoint.equals(startPoint.originPoint) &&  !i.originPoint.equals(endPoint.originPoint)){
 			if(startPoint.order!=1)
-				i.order += (svgSeletedfaces[startIndex].order-1);
+				i.order += (startPoint.order-1);
 			else{
-				let _order = i.order + svgSeletedfaces[endIndex].order;
+				let _order = i.order + endPoint.order;
 				i.order = (_order >2 )? _order-2 : _order;
 			}
 			i.svgPoint.add(vectorV);
@@ -828,8 +825,7 @@ function combineSelectedfaces(svgVertices){
 		}
 	}
 	if(startPoint.order!=1)
-		svgSeletedfaces[endIndex].order+= svgVertices.length-2;
-
+		endPoint.order+= svgVertices.length-2;
 }
 
 function restructureSvgSelectfaces(svgVertices){

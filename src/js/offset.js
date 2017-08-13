@@ -2,9 +2,10 @@ import * as d3 from 'd3';
 import math from './libs/math.min.js';
 import * as main from '../main.js';
 import * as blob from './libs/blob.js';
+// import * as inside from 'point-in-polygon';
 const colorMap = require('../json/colorHex.json'); 
 const styleMap = require('../json/superimposedStyle.json');
-
+var inside = require('point-in-polygon');
 //styleMap['三暈']['青緣綠地'].offsetColor[i]; // 大青
 //逆時針內縮 順時針放大
 var data = [
@@ -22,7 +23,17 @@ var data = [
 		y: 50
 	}],
 ];
+// var polygon = [ [ 50, 50 ], [ 50, 100 ]]; 
+// console.dir([
+//     inside([ 99, 50 ], polygon),
+//     inside([ 99, 49 ], polygon),
+//     inside([ 100, 50 ], polygon)
+// ]);
 
+
+let NOToffsetLines =[];
+let _lastNOToffsetLines;
+let changeList = [];
 let center = {x: null , y: null};
 let bounding = {width: null , height: null};
 var offset = 3; //line offset 
@@ -41,15 +52,86 @@ var line = d3.svg.line()
 		return d.y;
 	}).interpolate('linear-closed');
 
-_svg.append('path')
+// _svg.append('path')
+// 	.attr({
+// 		'd': line(data[0]),
+// 		'y': 0,
+// 		'stroke': '#000',
+// 		'stroke-width': '5px',
+// 		'fill': 'none',
+// 	});
+let g = _svg.append('g').attr({
+		'id':'group'
+	});
+for(let i = 0;  i< data[0].length;i++){
+	let  u = [data[0][i], data[0][(i+1)%data[0].length]];
+g.append('path')
 	.attr({
-		'd': line(data[0]),
+		'd': line(u),
 		'y': 0,
 		'stroke': '#000',
-		'stroke-width': '0px',
-		'fill': 'none'
+		'stroke-width': '5px',
+		'fill': 'none',
+		'id':'path' + i
 	});
+}
+ d3.selectAll('path')
+		.on("dblclick", handleMouseDblClick)
+		.on( "click", handleMouseClick )
+		
+	
+ function handleMouseDblClick(){
+	d3.select(this).attr({
+	              stroke: "red",
+	        
+	            });
+	let indexP1 = Number(this.id.slice(4));
+	let indexP2 = (indexP1+1)%data[0].length;
+	let P1 = data[0][indexP1];
+	let P2 = data[0][indexP2];
+	let L1 =[P1, P2];
 
+	
+	for(let i = 0 ; i <NOToffsetLines.length;i++){
+		let L2 = NOToffsetLines[i];
+		if(sameLine(L1, L2))
+			NOToffsetLines.splice(i,1);			
+	}
+	
+	console.log(NOToffsetLines);
+
+ }
+ function handleMouseClick() {  //雙及包含單及,及連續執行兩次
+
+            d3.select(this).attr({
+              stroke: "orange",
+        
+            });
+      	let indexP1 = Number(this.id.slice(4));
+	let indexP2 = (indexP1+1)%data[0].length;
+	let P1 = data[0][indexP1];
+	let P2 = data[0][indexP2];
+	let L1 =[P1, P2];
+	let exist=false;
+	for(let i = 0 ; i <NOToffsetLines.length;i++){
+		let L2 = NOToffsetLines[i];
+		if(sameLine(L1, L2))
+			exist=true;			
+	}
+	if(!exist)
+		NOToffsetLines.push(L1);
+	console.log(NOToffsetLines);
+
+ }
+function sameLine(L1, L2){
+	return samePoint(L1[0], L2[0]) && samePoint(L1[1], L2[1]); 
+}
+function samePoint(p1, p2){
+	// let sx = math.abs(p1.x-p2.x)<=0.0000001;
+	// let sy = math.abs(p1.y-p2.y)<=0.0000001;
+	// return sx&&sy;
+	return (p1.x==p2.x&&p1.y==p2.y);
+}
 export function saveSVG() {
 	//get svg element.
 	var svg = document.getElementById("svgCavas");
@@ -93,6 +175,7 @@ export function saveSVG() {
 }
 
 function computeNewNode(p1, p2, p3) {
+	
 
 	let vectorData = [{
 		x: 0,
@@ -106,198 +189,279 @@ function computeNewNode(p1, p2, p3) {
 	vectorData[0] = computeCrossVector(vectorP1P2);
 	vectorData[1] = computeCrossVector(vectorP2P3);
 
-	let lineData = [], linePx, linePy, crossUnitVector;
+	let lineData = [], linePx, linePy, crossUnitVector,crossP;
 
-	let _vectorP1P2 = new THREE.Vector2(vectorP1P2.x , vectorP1P2.y);
-	let _vectorP2P3 = new THREE.Vector2(vectorP2P3.x , vectorP2P3.y);
-	if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) -1) <= 0.00000001){
+	function handlePointsRelation(){
+		let _lineData=[];
+		//vectors dot = 1
+		let _vectorP1P2 = new THREE.Vector2(vectorP1P2.x , vectorP1P2.y);
+		let _vectorP2P3 = new THREE.Vector2(vectorP2P3.x , vectorP2P3.y);
+		if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) -1) <= 0.00000001){
+			linePx = p2.x + computeUnitVector(vectorData[0]).x * offset;
+			linePy = p2.y + computeUnitVector(vectorData[0]).y * offset;
+			_lineData.push( linePx);
+			_lineData.push( linePy);
+			return _lineData;
+			
+		}
+		//vectors dot = -1
+		else if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) + 1) <= 0.00000001){
+			linePx = p2.x - computeUnitVector(vectorData[0]).x * offset;
+			linePy = p2.y - computeUnitVector(vectorData[0]).y * offset;
+			_lineData.push( linePx);
+			_lineData.push( linePy);
+			return _lineData;
+			
+		}
+		return null;
+	}
+	function setLineData(){
+		lineData = [];
+		//first point of line1
+		linePx = p1.x + computeUnitVector(vectorData[0]).x * offset;
+		linePy = p1.y + computeUnitVector(vectorData[0]).y * offset;
+		lineData.push({
+			x: linePx,
+			y: linePy
+		});
+		//end point of line1
 		linePx = p2.x + computeUnitVector(vectorData[0]).x * offset;
 		linePy = p2.y + computeUnitVector(vectorData[0]).y * offset;
-		lineData.push( linePx);
-		lineData.push( linePy);
-		return lineData;
-		
+		lineData.push({
+			x: linePx,
+			y: linePy
+		});
+		//first point of line2
+		linePx = p2.x + computeUnitVector(vectorData[1]).x * offset;
+		linePy = p2.y + computeUnitVector(vectorData[1]).y * offset;
+		lineData.push({
+			x: linePx,
+			y: linePy
+		});
+		//end point of line2
+		linePx = p3.x + computeUnitVector(vectorData[1]).x * offset;
+		linePy = p3.y + computeUnitVector(vectorData[1]).y * offset;
+		lineData.push({
+			x: linePx,
+			y: linePy
+		});
 	}
-	else if (math.abs(_vectorP1P2.normalize().dot(_vectorP2P3.normalize()) + 1) <= 0.00000001){
-		linePx = p2.x - computeUnitVector(vectorData[0]).x * offset;
-		linePy = p2.y - computeUnitVector(vectorData[0]).y * offset;
-		lineData.push( linePx);
-		lineData.push( linePy);
-		return lineData;
-		
+	
+	///////////////////////////////////////////////////
+	let L1 = [p1, p2];
+	let L2 = [p2, p3];
+	let exist = [false,false];
+	for(let i of NOToffsetLines){
+		if(sameLine(i,L1))
+			exist[0] = true;
+		else if(sameLine(i,L2))
+			exist[1] = true; 
 	}
-	//first point of line1
-	linePx = p1.x + computeUnitVector(vectorData[0]).x * offset;
-	linePy = p1.y + computeUnitVector(vectorData[0]).y * offset;
-	lineData.push({
-		x: linePx,
-		y: linePy
-	});
-	//end point of line1
-	linePx = p2.x + computeUnitVector(vectorData[0]).x * offset;
-	linePy = p2.y + computeUnitVector(vectorData[0]).y * offset;
-	lineData.push({
-		x: linePx,
-		y: linePy
-	});
-	//first point of line2
-	linePx = p2.x + computeUnitVector(vectorData[1]).x * offset;
-	linePy = p2.y + computeUnitVector(vectorData[1]).y * offset;
-	lineData.push({
-		x: linePx,
-		y: linePy
-	});
-	//end point of line2
-	linePx = p3.x + computeUnitVector(vectorData[1]).x * offset;
-	linePy = p3.y + computeUnitVector(vectorData[1]).y * offset;
-	lineData.push({
-		x: linePx,
-		y: linePy
-	});
-	//console.log(math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y]));
-	return math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
+	if(samePoint(NOToffsetLines[0][0], p2) || samePoint(NOToffsetLines[0][1], p3))
+		console.log("Line2-stop");
+	if(samePoint(NOToffsetLines[0][0], p1) || samePoint(NOToffsetLines[0][1], p2))
+		console.log("Line1-stop");
+	setLineData();
+	if(exist[0] && exist[1])
+		return [p2.x, p2.y];
+	else if(exist[0]){
+		crossP = math.intersect([p1.x, p1.y], [p2.x, p2.y],  [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
+		
+		if(crossP!= null)
+			changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});
+		else
+			console.log("exist[0] null");
+		// if(handlePointsRelation()!=null)
+		// 	crossP =handlePointsRelation();
+	}
+	else if(exist[1]){
+		crossP = math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y] ,[p2.x, p2.y], [p3.x, p3.y]);
+		
+		if(crossP!=null)
+			changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});
+		else
+			console.log("exist[1] null");
+		// if(handlePointsRelation()!=null)
+		// 	crossP =handlePointsRelation();
+	}
+	else{
+		if(handlePointsRelation()==null){
+			// setLineData();
+			crossP = math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
+		}
+		else
+			crossP = handlePointsRelation();
+		//changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});			
+	}
+
+	if(crossP == null){
+		console.log("computeNewNode-null");
+		crossP = [p2.x,p2.y];
+	}
+	if(isNaN(crossP[0]))
+		console.log("computeNewNode - stop"); 
+	return crossP;
+
 
 }
 
+
 function createOffsetPoint(superimposedStyle) {
+	function handleLineTooShort(){
+		//short than offset
+		let tooShort = false, q, j, k;
+		let _temData =[],crossP;
+		for(let i = 0 ; i< _data.length ; i++){
+			if(i== 0)
+				q = _data.length-1 ;
+			else
+				q = i-1;
+			j = (i+1)%_data.length;
+			k = (j+1)%_data.length; 
 
-	let sourceData = data.length - 2,
-		targetData = data.length - 1;
-		
-	//restructureNode(data[targetData]);
-	let _data = data[sourceData],smallthanoffset =0, j,q,k;
-	let _temData =[],crossP;
-	for(let i = 0 ; i< _data.length ; i++){
-		if(i== 0)
-			q = _data.length-1 ;
-		else
-			q = i-1;
-		j = (i+1)%_data.length;
-		k = (j+1)%_data.length; 
-
-		_temData.push(_data[i]);
-		
-		if(distance(_data[i], _data[j])<  offset ){
-			crossP = math.intersect([_data[q].x,_data[q].y],[_data[i].x,_data[i].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
-			// console.log(math.intersect([_data[q].x,_data[q].y],[_data[i].x,_data[i].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]));
-			if(pointAtLineFunctionOR(_data[q],_data[i],_data[j],_data[k],crossP) ){
-				_temData.pop();
-				_temData.push({x:crossP[0],y:crossP[1]});
-				smallthanoffset++;
+			_temData.push(_data[i]);
+			
+			if(distance(_data[i], _data[j])<  offset ){
+				crossP = math.intersect([_data[q].x,_data[q].y],[_data[i].x,_data[i].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
+				if(isNaN(crossP[0]) ||  isNaN(crossP[1]) || !crossP)
+					break;
+				if(pointAtLineFunctionOR(_data[q],_data[i],_data[j],_data[k],crossP) ){
+					_temData.pop();
+					_temData.push({x:crossP[0],y:crossP[1]});
+					
+				}
+				
 			}
 			
 		}
-		
+		_data = _temData;
 	}
-	// console.log(smallthanoffset);
-	if(superimposedStyle[0] =="解綠" || superimposedStyle[0] =="丹粉" || superimposedStyle[0] =="黃土")
-		smallthanoffset = 0;
-
-	if(smallthanoffset > 0){
-
-		if (data[sourceData].length < 2)
-			console.log("node <= 2");
-		
-		else {
-
-			data[targetData].push({
-				x: computeNewNode(_temData[data[sourceData].length - 1], _temData[0], _temData[1])[0],
-				y: computeNewNode(_temData[data[sourceData].length - 1], _temData[0], _temData[1])[1]
-			});
-			for (let r = 0; r < data[sourceData].length - 1; r++) {
-				if ((r + 2) > data[sourceData].length - 1) {
+	function handleTargetDataOffset(_sourceData){
+			if (data[sourceData].length < 2){
+				console.log("node <= 2");
+				return;
+			}
+			
+			else {
+				let newP = computeNewNode(_sourceData[data[sourceData].length - 1], _sourceData[0], _sourceData[1]);
+				data[targetData].push({
+					x: newP[0],
+					y: newP[1]
+				});
+				for (let i = 0; i < data[sourceData].length - 1; i++) {
+					if ((i + 2) > data[sourceData].length - 1) 
+						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[0]);	
+					else
+						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[i + 2]);
+					if(isNaN(newP[0]) )
+						console.log("handleTargetDataOffset-stop");
 					data[targetData].push({
-						x: computeNewNode(_temData[r], _temData[r + 1], _temData[0])[0],
-						y: computeNewNode(_temData[r], _temData[r + 1], _temData[0])[1]
-					})
-				} else {
-					let p = computeNewNode(_temData[r], _temData[r + 1], _temData[r + 2]);
-					// if (p == null) continue;
-					data[targetData].push({
-						x: p[0],
-						y: p[1]
-					})
+							x: newP[0],
+							y: newP[1]
+						})
+
 				}
+
 			}
-
-		}
 	}
-	else{
-		data[targetData].push({
-			x: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[0],
-			y: computeNewNode(data[sourceData][data[sourceData].length - 1], data[sourceData][0], data[sourceData][1])[1]
-		});
-		
-		for (let r = 0; r < (data[sourceData].length - 1); r++) {
-			if ((r + 2) > data[sourceData].length - 1) {
-				data[targetData].push({
-					x: computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][0])[0],
-					y: computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][0])[1]
-				})
-			} else {
-				let p = computeNewNode(data[sourceData][r], data[sourceData][r + 1], data[sourceData][r + 2]);
-				data[targetData].push({
-					x: p[0],
-					y: p[1]
-				})
-			}
-		}
+	function handleOverLap(){
+		let q ,j, k,crossP;
+		_data = data[targetData];
+		for(let n = 0 ; n <  _data.length ; n++){
+			if(pointOverlapLastSharp(_data[n], offset ,data[sourceData])){
+				
+				q = (n -1)<0 ? (_data.length-1) : (n-1);
+				j = (n+1) % _data.length;
+				k = (j+1) % _data.length;
+				crossP = math.intersect([_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
+				if(crossP!= null){
+					if(pointAtLineFunctionOR(_data[q],_data[n],_data[j],_data[k],crossP) ){
+						
+						let _p = {x:crossP[0], y:crossP[1]};
+						if(pointOverlapLastSharp(_p, offset ,data[sourceData]) ){
+							console.log("case3");//交點仍然overlap
+							let m = (q-1)<0 ? (_data.length-1) : (q-1);
+							crossP = math.intersect([_data[m].x,_data[m].y],[_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y]);
+						
+						}
+						else
+							console.log("case1");
+						_data[n] = { x: crossP[0], y:crossP[1]};
 
-	
-
-	}
-	restructureNode(data[targetData]);
-	console.log(data);
-	let c=0;
-	_data = data[targetData];
-	for(let n = 0 ; n <  _data.length ; n++){
-		if(pointOverlapLastSharp(_data[n], offset ,data[sourceData])){
-			c++;
-			q = (n -1)<0 ? (_data.length-1) : (n-1);
-			j = (n+1) % _data.length;
-			k = (j+1) % _data.length;
-			crossP = math.intersect([_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y],[_data[k].x,_data[k].y]);
-			if(crossP!= null){
-				if(pointAtLineFunctionOR(_data[q],_data[n],_data[j],_data[k],crossP) ){
-					// && pointOverlapLastSharp({x:crossP[0], y:crossP[1]}, offset ,data[sourceData])
-					let _c = {x:crossP[0], y:crossP[1]};
-					if(pointOverlapLastSharp(_c, offset ,data[sourceData])){
-						console.log("case3");
+						console.log(_data[n]);
+						
+					}
+					else if (!pointAtLineFunction(_data[q],_data[n],_data[j],_data[k],crossP)){
 						let m = (q-1)<0 ? (_data.length-1) : (q-1);
 						crossP = math.intersect([_data[m].x,_data[m].y],[_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y]);
-					
+						if(crossP!= null && !pointAtLineFunction(_data[q],_data[n],_data[j],_data[k],crossP)){
+							_data[n] = { x: crossP[0], y:crossP[1]};
+						console.log("case2");
+						console.log(_data[n]);
+						}	
+						
 					}
-					else
-						console.log("case1");
-					_data[n] = { x: crossP[0], y:crossP[1]};
-
-					
 				}
-				else if (!pointAtLineFunction(_data[q],_data[n],_data[j],_data[k],crossP)){
-					let m = (q-1)<0 ? (_data.length-1) : (q-1);
-					crossP = math.intersect([_data[m].x,_data[m].y],[_data[q].x,_data[q].y],[_data[n].x,_data[n].y],[_data[j].x,_data[j].y]);
-					if(crossP!= null){
-						_data[n] = { x: crossP[0], y:crossP[1]};
-					}	
-					console.log("case2");
-				}
+			
 			}
-		
 		}
 	}
-	console.log(c);
+	
+	let sourceData = data.length - 2,
+		targetData = data.length - 1;
+	let _data = data[sourceData];
+
+
+	// if(superimposedStyle[0] =="解綠" || superimposedStyle[0] =="丹粉" || superimposedStyle[0] =="黃土")
+	// 	_data = data[sourceData];
+	// else
+	// 	handleLineTooShort();
+
+	handleTargetDataOffset(_data);
+
+	_lastNOToffsetLines = NOToffsetLines.slice();
+	//////////
+	// NOToffsetLines = NOToffsetLines.map(v=>v.map(p => changeList.find(x =>samePoint(x.old, p)) ? changeList.find(x =>samePoint(x.old, p)).new :p));
+	NOToffsetLines = NOToffsetLines.map(updateOffsetPoint);
+	function updateOffsetPoint(line) {
+		return line.map(p => changeList.find(x =>samePoint(x.old, p)) ? changeList.find(x =>samePoint(x.old, p)).new :p);
+	}
+	// console.log("NOT=");
+	// console.log(NOToffsetLines);
+	console.log("changeList=");
+	console.log(changeList);
 	
 	
+	
+	restructureNode(data[targetData]);
+	console.log(data);
+	handleOverLap();
+	
+	
+}
+function transferToInsideFormate(sourceData){
+	let _data = [];
+	for(let i of sourceData){
+		_data.push([i.x, i.y]);
+	}
+	return _data;
 }
 function pointOverlapLastSharp(point, r ,lastData){
 	let A, B, C;
 	//point =X3,y3
 	//p1 = x1,y1;
 	//p2 =x2,y2
-	let p1,p2,delta;
+	let p1,p2,delta, p3;
+	let _data = transferToInsideFormate(lastData);
 	for(let i = 0; i <lastData.length ; i++){
 		p1 = lastData[ i ];
 		p2 = lastData[ (i+1)%lastData.length ];
+		
+		
+		if(sameLine([p1, p2] ,_lastNOToffsetLines[0]) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
+			console.log("DO NOT OVERLAP");
+			continue;
+		}
 		A = math.pow(( p2.x - p1.x), 2) + math.pow(( p2.y-p1.y), 2);
 		B = 2*( ( p2.x-p1.x) *( p1.x-point.x) + ( p2.y-p1.y) *( p1.y - point.y)) ;
 		C = math.pow(point.x, 2) + math.pow(point.y, 2) + math.pow(p1.x, 2)+ math.pow(p1.y, 2) 
@@ -306,16 +470,25 @@ function pointOverlapLastSharp(point, r ,lastData){
 		if(delta > 0.1){
 			let u1 = (-B+math.sqrt( delta)) / (2*A);
 			let u2 = (-B -math.sqrt( delta)) / (2*A);
-			if(u1<=1 && u1 >= 0 && u2<=1 && u2 >=0)
+			if(u1<=1 && u1 >= 0 && u2<=1 && u2 >=0 )
 				return true;
 
 		} 
 	}
 	return false;
-	
+
+	function handleAlmostInside(){
+		let vectorP1P2 = computeVector(p1, p2);
+		let vectorPointP2 = computeVector(point, p2);
+		let _vectorP1P2 = new THREE.Vector2(vectorP1P2.x , vectorP1P2.y);
+		let _vectorPointP3 = new THREE.Vector2(vectorPointP2.x , vectorPointP2.y);
+		if (math.abs(_vectorP1P2.normalize().dot(_vectorPointP3.normalize()) -1) <= 0.00000001){
+			return true;
+		}
+		return false;
+	}
 }
-
-
+ 
 function setBounding(){
 	let max = {x : -Infinity  , y:-Infinity  };
 	let min = {x:Infinity  , y:Infinity  };
@@ -405,19 +578,34 @@ function updateData() {
 	let g = _svg.append('g').attr({
 		'id':'group'
 	});
-	for (let i = 0; i < data.length; i++) {		
+	// for (let i = 0; i < data.length; i++) {		
+	// 	g.append('path')
+	// 		.attr({
+	// 			'd': line(data[i]),
+	// 			'y': 0,
+	// 			'stroke': '#000',
+	// 			'stroke-width': '1px',
+	// 			'vector-effect':'non-scaling-stroke',
+	// 			'fill': '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)
+	// 			// 'fill': 'rgb(255,0,0)'
+	// 		});
+	// }
+	for(let i = 0;  i< data[0].length;i++){
+		let  u = [data[0][i], data[0][(i+1)%data[0].length]];
 		g.append('path')
 			.attr({
-				'd': line(data[i]),
+				'd': line(u),
 				'y': 0,
 				'stroke': '#000',
 				'stroke-width': '1px',
-				'vector-effect':'non-scaling-stroke',
-				'fill': '#' + (0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)
-				// 'fill': 'rgb(255,0,0)'
+				'fill': 'none',
+				'id':'path' + i
 			});
 	}
-
+d3.selectAll('path')
+		.on("dblclick", handleMouseDblClick)
+		.on( "click", handleMouseClick )
+		
 
 }
 export function realtimeRending(d) {
@@ -538,9 +726,7 @@ function restructureNode(data){
 			
 			let P2 = data[IndexP2];
 			let P3 = data[indexP3];
-			
-			let crossNode = math.intersect([P0.x, P0.y], [P1.x, P1.y], [P2.x, P2.y], [P3.x, P3.y]);
-			
+			let crossNode =  math.intersect([P0.x, P0.y], [P1.x, P1.y], [P2.x, P2.y], [P3.x, P3.y]);
 			if(crossNode!= null && pointAtLineFunction(P0,P1,P2,P3,crossNode)){	
 				
 				const shouldRemove = (indexP3-indexP1+data.length)%data.length;
@@ -548,6 +734,17 @@ function restructureNode(data){
 				
 					break;
 				}
+				// if(samePoint( data[indexP3], NOToffsetLines[0][1]) || samePoint( data[indexP3], NOToffsetLines[0][0]) )
+				// 	console.log("find splice");
+			
+				for(let k = indexP1; k< indexP3 ; k++){
+					if(samePoint(data[k], NOToffsetLines[0][1])  )
+						NOToffsetLines[0][1] = {x:crossNode[0] , y:crossNode[1]};				
+					else if( samePoint(data[k], NOToffsetLines[0][0]) )
+						NOToffsetLines[0][0] = {x:crossNode[0] , y:crossNode[1]};
+				}
+				
+
 				data.splice(indexP1, shouldRemove);//remove
 				let arr = {x: crossNode[0], y: crossNode[1]};
 				data.splice(indexP1, 0,arr );//insert

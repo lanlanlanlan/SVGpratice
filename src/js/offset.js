@@ -257,10 +257,10 @@ function computeNewNode(p1, p2, p3) {
 		else if(sameLine(i,L2))
 			exist[1] = true; 
 	}
-	if(samePoint(NOToffsetLines[0][0], p2) || samePoint(NOToffsetLines[0][1], p3))
-		console.log("Line2-stop");
-	if(samePoint(NOToffsetLines[0][0], p1) || samePoint(NOToffsetLines[0][1], p2))
-		console.log("Line1-stop");
+	// if(samePoint(NOToffsetLines[0][0], p2) || samePoint(NOToffsetLines[0][1], p3))
+	// 	console.log("Line2-stop");
+	// if(samePoint(NOToffsetLines[0][0], p1) || samePoint(NOToffsetLines[0][1], p2))
+	// 	console.log("Line1-stop");
 	setLineData();
 	if(exist[0] && exist[1])
 		return [p2.x, p2.y];
@@ -456,12 +456,20 @@ function pointOverlapLastSharp(point, r ,lastData){
 	for(let i = 0; i <lastData.length ; i++){
 		p1 = lastData[ i ];
 		p2 = lastData[ (i+1)%lastData.length ];
-		
-		
-		if(sameLine([p1, p2] ,_lastNOToffsetLines[0]) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
-			console.log("DO NOT OVERLAP");
-			continue;
+		let _ok = false;
+		for(let n of _lastNOToffsetLines){
+			if(sameLine([p1, p2] ,n) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
+				_ok = true;
+				console.log("DO NOT OVERLAP");
+				break;
+			}
 		}
+		if(_ok)
+			continue;
+		// if(sameLine([p1, p2] ,_lastNOToffsetLines[0]) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
+		// 	console.log("DO NOT OVERLAP");
+		// 	continue;
+		// }
 		A = math.pow(( p2.x - p1.x), 2) + math.pow(( p2.y-p1.y), 2);
 		B = 2*( ( p2.x-p1.x) *( p1.x-point.x) + ( p2.y-p1.y) *( p1.y - point.y)) ;
 		C = math.pow(point.x, 2) + math.pow(point.y, 2) + math.pow(p1.x, 2)+ math.pow(p1.y, 2) 
@@ -629,8 +637,6 @@ export function setData(svgVertices) {
 			if (svgVertices[j].order == i + 1) {
 
 				arr.push({
-					// x: svgVertices[j].svgPoint.x *200   ,
-					// y: svgVertices[j].svgPoint.y  *200 
 					x: svgVertices[j].svgPoint.x *100   ,
 					y: svgVertices[j].svgPoint.y  *100 
 				})
@@ -734,17 +740,20 @@ function restructureNode(data){
 				
 					break;
 				}
-				// if(samePoint( data[indexP3], NOToffsetLines[0][1]) || samePoint( data[indexP3], NOToffsetLines[0][0]) )
-				// 	console.log("find splice");
-			
 				for(let k = indexP1; k< indexP3 ; k++){
-					if(samePoint(data[k], NOToffsetLines[0][1])  )
-						NOToffsetLines[0][1] = {x:crossNode[0] , y:crossNode[1]};				
-					else if( samePoint(data[k], NOToffsetLines[0][0]) )
-						NOToffsetLines[0][0] = {x:crossNode[0] , y:crossNode[1]};
+					for(let n = 0; n < NOToffsetLines.length; n++){
+						if(samePoint(data[k], NOToffsetLines[n][1])  )
+							NOToffsetLines[n][1] = {x:crossNode[0] , y:crossNode[1]};				
+						else if( samePoint(data[k], NOToffsetLines[n][0]) )
+							NOToffsetLines[n][0] = {x:crossNode[0] , y:crossNode[1]};
+					}
+					// if(samePoint(data[k], NOToffsetLines[0][1])  )
+					// 	NOToffsetLines[0][1] = {x:crossNode[0] , y:crossNode[1]};				
+					// else if( samePoint(data[k], NOToffsetLines[0][0]) )
+					// 	NOToffsetLines[0][0] = {x:crossNode[0] , y:crossNode[1]};
+					
 				}
 				
-
 				data.splice(indexP1, shouldRemove);//remove
 				let arr = {x: crossNode[0], y: crossNode[1]};
 				data.splice(indexP1, 0,arr );//insert

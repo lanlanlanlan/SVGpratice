@@ -294,9 +294,21 @@ function computeNewNode(p1, p2, p3) {
 		//changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});			
 	}
 
-	if(crossP == null){
-		console.log("computeNewNode-null");
+	if(crossP == null && exist[0]){
+		console.log("computeNewNode-null"); // 三點共線導致null
 		crossP = [p2.x,p2.y];
+		NOToffsetLines.push([ p2,p3] );
+	}
+	else if(crossP == null && exist[1]){
+		console.log("computeNewNode-null"); // 三點共線導致null
+		// crossP = [p2.x, p2.y];
+		// NOToffsetLines.push([p1 ,p2] );
+		let _target = data[data.length-1];
+		let index = _target.length -1;
+		crossP = math.intersect([_target[index].x, _target[index].y] , [_target[index-1].x , _target[index-1].y] , [p2.x, p2.y], [p3.x, p3.y]);  
+			changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});
+		
+		
 	}
 	if(isNaN(crossP[0]))
 		console.log("computeNewNode - stop"); 
@@ -456,15 +468,15 @@ function pointOverlapLastSharp(point, r ,lastData){
 	for(let i = 0; i <lastData.length ; i++){
 		p1 = lastData[ i ];
 		p2 = lastData[ (i+1)%lastData.length ];
-		let _ok = false;
+		let _overlap = false;
 		for(let n of _lastNOToffsetLines){
 			if(sameLine([p1, p2] ,n) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
-				_ok = true;
+				_overlap = true;
 				console.log("DO NOT OVERLAP");
 				break;
 			}
 		}
-		if(_ok)
+		if(_overlap)
 			continue;
 		// if(sameLine([p1, p2] ,_lastNOToffsetLines[0]) && (inside([point.x , point.y], _data)|| handleAlmostInside() ) ){ // find why return false,sholud be true
 		// 	console.log("DO NOT OVERLAP");

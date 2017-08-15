@@ -9,7 +9,7 @@ var inside = require('point-in-polygon');
 //styleMap['三暈']['青緣綠地'].offsetColor[i]; // 大青
 //逆時針內縮 順時針放大
 var data = [
-	[{
+	[/*{
 		x: 50,
 		y: 50
 	}, {
@@ -21,18 +21,12 @@ var data = [
 	}, {
 		x: 100,
 		y: 50
-	}],
+	}*/],
 ];
-// var polygon = [ [ 50, 50 ], [ 50, 100 ]]; 
-// console.dir([
-//     inside([ 99, 50 ], polygon),
-//     inside([ 99, 49 ], polygon),
-//     inside([ 100, 50 ], polygon)
-// ]);
 
 
-let NOToffsetLines =[];
-let _lastNOToffsetLines;
+let NOToffsetLines =[] , selectedEdge =[];
+let _lastNOToffsetLines ;
 let changeList = [];
 let center = {x: null , y: null};
 let bounding = {width: null , height: null};
@@ -79,7 +73,8 @@ g.append('path')
 		.on("dblclick", handleMouseDblClick)
 		.on( "click", handleMouseClick )
 		
-	
+
+
  function handleMouseDblClick(){
 	d3.select(this).attr({
 	              stroke: "red",
@@ -99,7 +94,7 @@ g.append('path')
 	}
 	
 	console.log(NOToffsetLines);
-
+	selectedEdge = NOToffsetLines.slice();
  }
  function handleMouseClick() {  //雙及包含單及,及連續執行兩次
 
@@ -121,7 +116,7 @@ g.append('path')
 	if(!exist)
 		NOToffsetLines.push(L1);
 	console.log(NOToffsetLines);
-
+	selectedEdge = NOToffsetLines.slice();
  }
 function sameLine(L1, L2){
 	return samePoint(L1[0], L2[0]) && samePoint(L1[1], L2[1]); 
@@ -310,7 +305,7 @@ function computeNewNode(p1, p2, p3) {
 		
 		
 	}
-	if(isNaN(crossP[0]))
+	if(isNaN(crossP[0]) && !crossP )
 		console.log("computeNewNode - stop"); 
 	return crossP;
 
@@ -365,7 +360,7 @@ function createOffsetPoint(superimposedStyle) {
 						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[0]);	
 					else
 						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[i + 2]);
-					if(isNaN(newP[0]) )
+					if(isNaN(newP[0]) && !newP )
 						console.log("handleTargetDataOffset-stop");
 					data[targetData].push({
 							x: newP[0],
@@ -823,6 +818,10 @@ export function w(superimposedStyle){
 	updateData_test(superimposedStyle);
 }
 export function clearSuperimposed(){
-	while(data.length != 1)
+	while(data.length != 1){
 		data.pop();
+	}
+	if(selectedEdge.length != 0)
+		NOToffsetLines = selectedEdge.slice();
+	changeList = [];
 }

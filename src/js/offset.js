@@ -283,6 +283,15 @@ function computeNewNode(p1, p2, p3) {
 		if(handlePointsRelation()==null){
 			// setLineData();
 			crossP = math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
+			if(crossP == null){
+				if(p2.x == p3.x){
+					lineData[3].y--;
+					crossP = math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
+				}
+				else
+					crossP = [p2.x, p2.y];
+			}
+	
 		}
 		else
 			crossP = handlePointsRelation();
@@ -296,14 +305,11 @@ function computeNewNode(p1, p2, p3) {
 	}
 	else if(crossP == null && exist[1]){
 		console.log("computeNewNode-null"); // 三點共線導致null
-		// crossP = [p2.x, p2.y];
-		// NOToffsetLines.push([p1 ,p2] );
 		let _target = data[data.length-1];
 		let index = _target.length -1;
 		crossP = math.intersect([_target[index].x, _target[index].y] , [_target[index-1].x , _target[index-1].y] , [p2.x, p2.y], [p3.x, p3.y]);  
 			changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});
-		
-		
+	
 	}
 	if(isNaN(crossP[0]) && !crossP )
 		console.log("computeNewNode - stop"); 
@@ -713,7 +719,7 @@ function updateData_test(superimposedStyle){
 function realtimeRending_test(d, superimposedStyle) {
 	let total = (bounding.width<bounding.height)?bounding.width:bounding.height;
 	//polygon_area();
-	offset = d*total/15;
+	// offset = d*total/15;
 	 offset = d* 0.9090916315714518;//從令拱換算
 	 // offset = d;
 	data.push([]);

@@ -51,11 +51,11 @@ let svg  = {
 	"三暈- 綠青緣綠地":function(){
 		drawWithStyle('三暈','綠青緣綠地')
 	},
-	"三暈- 綠紅緣綠地":function(){
-		drawWithStyle('三暈','綠紅緣綠地')
+	"三暈- 綠紅緣青地":function(){
+		drawWithStyle('三暈','綠紅緣青地')
 	},
-	"三暈- 青紅緣青地":function(){
-		drawWithStyle('三暈','青紅緣青地')
+	"三暈- 青紅緣綠地":function(){
+		drawWithStyle('三暈','青紅緣綠地')
 	},
 	"解綠- 青緣道":function(){
 		drawWithStyle('解綠','青緣道')
@@ -120,8 +120,8 @@ window.onload =  function(){
 	folder.add(svg,'兩暈- 青緣綠地');
 	folder.add(svg,'三暈- 綠青緣綠地');
 	folder.add(svg,'三暈- 青綠緣青地');
-	folder.add(svg,'三暈- 綠紅緣綠地');
-	folder.add(svg,'三暈- 青紅緣青地');
+	folder.add(svg,'三暈- 綠紅緣青地');
+	folder.add(svg,'三暈- 青紅緣綠地');
 	folder.add(svg,'解綠- 青緣道');
 	folder.add(svg,'解綠- 綠緣道');
 	folder.add(svg,'丹粉- 身內刷朱');

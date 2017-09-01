@@ -288,8 +288,7 @@ function computeNewNode(p1, p2, p3) {
 					lineData[3].y--;
 					crossP = math.intersect([lineData[0].x, lineData[0].y], [lineData[1].x, lineData[1].y], [lineData[2].x, lineData[2].y], [lineData[3].x, lineData[3].y]);
 				}
-				else
-					crossP = [p2.x, p2.y];
+				//尚未處理else情況
 			}
 	
 		}
@@ -305,13 +304,15 @@ function computeNewNode(p1, p2, p3) {
 	}
 	else if(crossP == null && exist[1]){
 		console.log("computeNewNode-null"); // 三點共線導致null
+		// crossP = [p2.x, p2.y];
+		// NOToffsetLines.push([p1 ,p2] );
 		let _target = data[data.length-1];
 		let index = _target.length -1;
 		crossP = math.intersect([_target[index].x, _target[index].y] , [_target[index-1].x , _target[index-1].y] , [p2.x, p2.y], [p3.x, p3.y]);  
 			changeList.push({old:p2, new:{x:crossP[0],y:crossP[1]}});
 	
 	}
-	if(isNaN(crossP[0]) && !crossP )
+	if( !crossP )
 		console.log("computeNewNode - stop"); 
 	return crossP;
 
@@ -366,7 +367,7 @@ function createOffsetPoint(superimposedStyle) {
 						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[0]);	
 					else
 						newP = computeNewNode(_sourceData[i], _sourceData[i + 1], _sourceData[i + 2]);
-					if(isNaN(newP[0]) && !newP )
+					if( !newP )
 						console.log("handleTargetDataOffset-stop");
 					data[targetData].push({
 							x: newP[0],

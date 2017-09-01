@@ -77,8 +77,8 @@ export function init() {
 
 	//#pragma:model
 	loader = new THREE.OBJLoader(manager);
-	loader.load('./models/32_deleteLine.obj', function(object) {
-	// loader.load('./models/32_deleteLine.obj.gz', function(object) {
+	// loader.load('./models/32_deleteLine.obj', function(object) {
+	loader.load('./models/32_deleteLine.obj.gz', function(object) {
 		for(let i in object.children){
 			object.children[i].geometry = new THREE.Geometry().fromBufferGeometry(object.children[i].geometry);
 			//make sure smooth
